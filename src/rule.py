@@ -1,9 +1,10 @@
 import re
+from random import random, seed
 
 # LSystem step rule pattern
 
-base = r'(?P<Base>[A-Za-z]+)'
-pos = r'(?P<Possibility>(\d(\.|\,)\d))'
+base = r'(?P<Base>[A-Za-z])'
+pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
 res = r'(?P<Result>[A-Za-z]+)'
 rrn = r'(?P<RequiredRightNeighbour>[A-Za-z]+)'
 rln = r'(?P<ReguiredLeftNeighbour>[A-Za-z]+)'
@@ -18,14 +19,14 @@ def parse_rule(data: str) -> dict[str, str]:
     return m.groupdict()
 
 
-def search_rule_with_base(base: str, rules: list[str]) -> bool:
+def give_rule_with_base(base: str, rules: list[str]) -> str | None:
     for rule in rules:
         if base == parse_rule(rule)['Base']:
-            return True
-    return False
+            return rule
+    return None
 
 
-def check_pos_requirements(rule: str, idx: int, state: str) -> bool:
+def check_pos_requirements(rule: str, state: str, idx: int) -> bool:
     dict_rule: dict[str, str] = parse_rule(rule)
     rneighbour: str = dict_rule['RequiredRightNeighbour']
     lneighbour: str = dict_rule['ReguiredLeftNeighbour']
@@ -37,6 +38,20 @@ def check_pos_requirements(rule: str, idx: int, state: str) -> bool:
     return bool(right * left)
 
 
+def check_posibility(rule: str) -> bool:
+    seed(0)
+    pos: float = float(parse_rule(rule)['Possibility'])
+    if random() <= pos:
+        return True
+    return False
+
+
+def check_all_requirements(rule: str, state: str, idx: int) -> bool:
+    pos_req: bool = check_pos_requirements(rule, state, idx)
+    posibility: bool = check_posibility(rule)
+    return bool(pos_req * posibility)
+
+
 if __name__ == '__main__':
     test_rule1 = 'F->FF'
     test_rule2 = 'A<F>B->FF'
@@ -44,6 +59,6 @@ if __name__ == '__main__':
     test_state1, test_state2 = 'AFB', 'FFF'
     print(parse_rule(test_rule1))
     print(parse_rule(test_rule2))
-    print(search_rule_with_base(test1, [test_rule1, test_rule2]))
-    print(check_pos_requirements(test_rule2, 1, test_state1))
-    print(check_pos_requirements(test_rule2, 1, test_state2))
+    print(give_rule_with_base(test1, [test_rule1, test_rule2]))
+    print(check_pos_requirements(test_rule2, test_state1, 1))
+    print(check_pos_requirements(test_rule2, test_state2, 1))
