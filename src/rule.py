@@ -31,17 +31,17 @@ def check_pos_requirements(rule: str, state: str, idx: int) -> bool:
     rneighbour: str = dict_rule['RequiredRightNeighbour']
     lneighbour: str = dict_rule['ReguiredLeftNeighbour']
     right, left = False, False
-    if state[idx+1:idx+len(rneighbour)+1] == rneighbour or rneighbour is None:
+    if rneighbour is None or state[idx+1:idx+len(rneighbour)+1] == rneighbour:
         right = True
-    if state[idx-len(lneighbour):idx] == lneighbour or lneighbour is None:
+    if lneighbour is None or state[idx-len(lneighbour):idx] == lneighbour:
         left = True
     return bool(right * left)
 
 
 def check_posibility(rule: str) -> bool:
     seed(0)
-    pos: float = float(parse_rule(rule)['Possibility'])
-    if random() <= pos:
+    pos: str | None = parse_rule(rule)['Possibility']
+    if pos is None or random() <= float(pos):
         return True
     return False
 
