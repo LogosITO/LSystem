@@ -27,6 +27,8 @@ def give_rule_with_base(base: str, rules: list[str]) -> str | None:
 
 
 def check_pos_requirements(rule: str, state: str, idx: int) -> bool:
+    if state[idx] != parse_rule(rule)['Base']:
+        return False
     dict_rule: dict[str, str] = parse_rule(rule)
     rneighbour: str = dict_rule['RequiredRightNeighbour']
     lneighbour: str = dict_rule['ReguiredLeftNeighbour']
