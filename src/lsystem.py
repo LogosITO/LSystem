@@ -36,6 +36,6 @@ class LSystem:
 
     def generate(self, depth: int):
         if depth < 1:
-            raise "Depth below one!"
+            raise ValueError
         for i in range(depth):
             self.step()
