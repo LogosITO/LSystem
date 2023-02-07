@@ -21,8 +21,8 @@ class LSystem:
         if new_rule in self.rules:
             return True
         try:
-            m = rule.parse_rule(new_rule)
-        except  TypeError:
+            rule.parse_rule(new_rule)
+        except TypeError:
             return False
         self.rules.append(new_rule)
         return True

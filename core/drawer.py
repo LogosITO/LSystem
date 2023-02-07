@@ -1,14 +1,13 @@
 from PIL import Image
 from PIL import ImageDraw
 from math import sin, cos, radians
-from typing import Any
-from dataclasses import asdict
-from lsystem import *
+from lsystem import *   # type: ignore # noqa: F403
 
 
 def draw_tree_base(image_size: tuple[int, int], base_coords: list[float],
-                   state: str, alphabet: dict[str, int], angles: dict[str, float], 
-                   saving_filename: str = "tree.png",preview: bool = True):
+                   state: str, alphabet: dict[str, float],
+                   angles: dict[str, float], saving_filename: str = "tree.png",
+                   preview: bool = True):
 
     image = Image.new('RGB', image_size)
     draw = ImageDraw.Draw(image)
@@ -39,7 +38,11 @@ def draw_tree_base(image_size: tuple[int, int], base_coords: list[float],
     if preview is True:
         image.show()
 
+
 if __name__ == '__main__':
-    tree = LSystem('F', 1, {'F': 10, 'A': 5}, {'-': 30, '+': 30, ')': 105}, ['F->F[F+FA)A]+A', 'A->F--FA+F'])
+    tree = LSystem('F', 1, {'F': 10, 'A': 5},  # noqa: F405
+                   {'-': 30, '+': 30, ')': 105},
+                   ['F->F[F+FA)A]+A', 'A->F--FA+F'])
     tree.generate(5)
-    draw_tree_base((800, 400), [400, 200], tree.state, tree.alphabet, tree.angles)
+    draw_tree_base((800, 400), [400, 200], tree.state,
+                   tree.alphabet, tree.angles)

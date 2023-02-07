@@ -37,7 +37,7 @@ class RuleMethodsTestCase(unittest.TestCase):
         with self.subTest():
             case_value = rule.give_rule_with_base('J', self.data)
             self.assertEqual(case_value, self.data[0])
-    
+
     def test_requirements_checker(self):
         with self.subTest():
             test_state = 'ABAAA'
