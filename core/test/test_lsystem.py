@@ -12,14 +12,14 @@ class LSystemTestCase(unittest.TestCase):
     def test_rule_adding(self):
         with self.subTest():
             new_rule = 'FFFF->FF'
-            res = Test_LSystem.ls.add_rule(new_rule)
+            res = self.Test_LSystem.add_rule(new_rule)
             self.assertEqual(res, True)
         with self.subTest():
             new_rule = 'F'
-            res = Test_LSystem.ls.add_rule(new_rule)
+            res = self.Test_LSystem.add_rule(new_rule)
             self.assertEqual(res, False)
         with self.subTest():
             new_rule = 'F->FAF'
-            res = Test_LSystem.ls.add_rule(new_rule)
+            res = self.Test_LSystem.add_rule(new_rule)
             self.assertEqual(res, True)
         
