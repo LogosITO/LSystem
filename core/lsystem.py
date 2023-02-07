@@ -13,12 +13,16 @@ class LSystem:
     state: str = field(init=False, default='')
 
     def __post_init__(self):
-        if len(self.alphabet < 1):
+        if len(self.alphabet) < 1:
             raise "Alphabet does not exist!"
         self.state = self.axiom
 
     def add_rule(self, new_rule: str) -> bool:
-        if rule.parse_rule(new_rule) is None:
+        if new_rule in self.rules:
+            return True
+        try:
+            m = rule.parse_rule(new_rule)
+        except  TypeError:
             return False
         self.rules.append(new_rule)
         return True

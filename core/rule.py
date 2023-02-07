@@ -1,5 +1,6 @@
 import re
 from random import random, seed
+from typing import Optional
 
 # LSystem step rule pattern
 
@@ -19,7 +20,7 @@ def parse_rule(data: str) -> dict[str, str]:
     return m.groupdict()
 
 
-def give_rule_with_base(base: str, rules: list[str]) -> str | None:
+def give_rule_with_base(base: str, rules: list[str]) -> Optional[str]:
     for rule in rules:
         if base == parse_rule(rule)['Base']:
             return rule
@@ -42,7 +43,7 @@ def check_pos_requirements(rule: str, state: str, idx: int) -> bool:
 
 def check_posibility(rule: str) -> bool:
     seed(0)
-    pos: str | None = parse_rule(rule)['Possibility']
+    pos: Optional[str] = parse_rule(rule)['Possibility']
     if pos is None or random() <= float(pos):
         return True
     return False
