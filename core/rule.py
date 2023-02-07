@@ -4,12 +4,12 @@ from typing import Optional
 
 # LSystem step rule pattern
 
-base = r'(?P<Base>[A-Za-z])'
+base = r'(?P<Base>[A-Za-z + -]+)'
 pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
-res = r'(?P<Result>[A-Za-z]+)'
-rrn = r'(?P<RequiredRightNeighbour>[A-Za-z]+)'
-rln = r'(?P<ReguiredLeftNeighbour>[A-Za-z]+)'
-pattern = fr'^({rln}.)?{base}(\({pos}\))?(.{rrn})?..{res}$'
+res = r'(?P<Result>[A-Za-z \W]+)'
+rrn = r'(?P<RequiredRightNeighbour>[A-Za-z + -]+)'
+rln = r'(?P<ReguiredLeftNeighbour>[A-Za-z + -]+)'
+pattern = fr'^({rln}<)?{base}(\({pos}\))?(>{rrn})?->{res}$'
 
 
 def parse_rule(data: str) -> dict[str, str]:
@@ -56,7 +56,7 @@ def check_all_requirements(rule: str, state: str, idx: int) -> bool:
 
 
 if __name__ == '__main__':
-    test_rule1 = 'F->FF'
+    test_rule1 = 'F->F+F'
     test_rule2 = 'A<F>B->FF'
     test1, test2 = 'F', 'A'
     test_state1, test_state2 = 'AFB', 'FFF'
