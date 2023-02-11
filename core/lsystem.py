@@ -1,9 +1,10 @@
 import rule
 from dataclasses import dataclass, field
+from globals import LAS
 
 
-@dataclass(frozen=False)
-class LSystem:
+@dataclass(init=True, frozen=False)
+class BaseLSystem:
     axiom: str
     thickness: float
     alphabet: dict[str, float]
@@ -45,3 +46,16 @@ class LSystem:
             raise ValueError
         for i in range(depth):
             self.step()
+
+@dataclass(init=True, frozen=False)
+class WMLLSystem(BaseLSystem):
+    leaf_symbol: str = '*'
+
+    def __post_init__(self):
+        super().__post_init__()
+        if self.leaf_symbol not in LAS:
+            raise ValueError('Leaf symbol not allowed! Use LAS symbols!')
+
+    def add_rule(self, new_rule: str) -> bool:
+        return super().add_rule(new_rule)
+

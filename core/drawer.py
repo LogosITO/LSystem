@@ -13,7 +13,7 @@ def get_new_coords(coordx: float, coordy: float,
 
 def draw_tree_base(image_size: tuple[int, int], base_coords: list[float],
                    state: str, alphabet: dict[str, float],
-                   angles: dict[str, float], thickness: int,
+                   angles: dict[str, float], thickness: int, ls: str = '',
                    saving_filename: str = "tree.png", preview: bool = True):
 
     image = Image.new('RGB', image_size, (255, 255, 255, 0))
@@ -25,13 +25,14 @@ def draw_tree_base(image_size: tuple[int, int], base_coords: list[float],
 
     for move in state:
         if move == '[':
-            draw.ellipse((coords[0], coords[1], coords[0] + 6,
-                          coords[1] + 10), fill='green', outline=(0, 0, 0))
             saved_coords.append(coords)
             saved_angles.append(angle)
         elif move == ']':
             coords = saved_coords.pop()
             angle = saved_angles.pop()
+        if move == ls:
+            draw.ellipse((coords[0], coords[1], coords[0] + 15,
+                          coords[1] + 20), fill='green', outline=(0, 0, 0))
         if move in alphabet:
             newcoords = get_new_coords(coords[0], coords[1],
                                        angle, alphabet[move])
@@ -47,9 +48,9 @@ def draw_tree_base(image_size: tuple[int, int], base_coords: list[float],
 
 
 if __name__ == '__main__':
-    tree = LSystem('X', 1, {'F': 10, 'X': 0},  # noqa: F405
-                   {'-': -10, '+': 80},
-                   ['X->FF[X-FX+FF-[X-FFX+F]]'])
-    tree.generate(6)
+    tree = WMLLSystem('X', 1, {'F': 100, 'X': 0},  # noqa: F405
+                   {'-': 25, '+': 25},
+                   ['X->F+[X-F*+F]', 'F->FF'])
+    tree.generate(3)
     draw_tree_base((2000, 2000), [1000, 1600], tree.state,
-                   tree.alphabet, tree.angles, 3)
+                   tree.alphabet, tree.angles, 3, '*')

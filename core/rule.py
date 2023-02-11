@@ -1,11 +1,12 @@
 import re
 from random import random, seed
 from typing import Optional
+from globals import LAS
 
 
-base = r'(?P<Base>[A-Za-z + - ( )]+)'
+base = fr'(?P<Base>[A-Za-z + - ( ) {LAS}]+)'
 pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
-res = r'(?P<Result>[A-Za-z\W]+)'
+res = fr'(?P<Result>[A-Za-z {LAS} \W]+)'
 rrn = r'(?P<RequiredRightNeighbour>(!?[A-Za-z + -]+))'
 rln = r'(?P<ReguiredLeftNeighbour>(!?[A-Za-z + -]+))'
 
@@ -16,7 +17,7 @@ def parse_rule(data: str) -> dict[str, str]:
     auto = re.compile(pattern)
     m = auto.search(data)
     if m is None:
-        raise TypeError
+        raise TypeError('The rule does not match the given pattern!')
     return m.groupdict()
 
 
@@ -33,15 +34,23 @@ def check_pos_requirements(rule: str, state: str, idx: int) -> bool:
     dict_rule: dict[str, str] = parse_rule(rule)
     req_rnb: str = dict_rule['RequiredRightNeighbour']
     req_lnb: str = dict_rule['ReguiredLeftNeighbour']
-    rneighbour = state[idx+1:idx+len(req_rnb)+1]
-    lneighbour = state[idx-len(req_lnb):idx]
     right, left = False, False
-    rneg, lneg = '!' in req_rnb, '!' in req_lnb
-    if rneg and rneighbour[1:] != req_rnb or \
-       not rneg and (rneighbour == req_rnb or req_rnb is None):
+    rneq, lneg = False, False
+    if req_rnb is None:
         right = True
-    if lneg and lneighbour[1:] != req_lnb or \
-       not lneg and (lneighbour == req_lnb or req_lnb is None):
+    else:
+        rneighbour = state[idx+1:idx+len(req_rnb)+1]
+        rneg = '!' in req_rnb
+    if req_lnb is None:
+        left = True
+    else:
+        lneighbour = state[idx-len(req_lnb):idx]
+        lneg = '!' in req_lnb
+    if not right and (rneg and rneighbour[1:] != req_rnb or \
+       not rneg and (rneighbour == req_rnb or req_rnb is None)):
+        right = True
+    if not left and (lneg and lneighbour[1:] != req_lnb or \
+       not lneg and (lneighbour == req_lnb or req_lnb is None)):
         left = True
     return bool(right * left)
 
