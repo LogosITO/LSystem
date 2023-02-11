@@ -9,6 +9,7 @@ class LSystem:
     alphabet: dict[str, float]
     angles: dict[str, float]
     rules: list[str]
+    parametrized_rules: list[str] = field(init=True, default_factory=list)
     length_reduction: float = field(init=True, default=0.95)
     state: str = field(init=False, default='')
 
@@ -32,6 +33,7 @@ class LSystem:
         for idx, el in enumerate(self.state):
             now = rule.give_rule_with_base(el, self.rules)
             if now is None:
+                next_state += el
                 continue
             if rule.check_all_requirements(now, self.state, idx) is True:
                 next_state += rule.parse_rule(now)['Result']

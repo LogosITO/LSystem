@@ -14,7 +14,7 @@ class RulePatternTestCase(unittest.TestCase):
             test_step = 'A<F>B->FF'
             self.assertNotEqual(rule.parse_rule(test_step), None)
         with self.subTest():
-            test_step = 'A<F(0.5)->FF'
+            test_step = 'A<F[0.5]->FF'
             self.assertNotEqual(rule.parse_rule(test_step), None)
         with self.subTest():
             test_step = 'F->F+FF'
@@ -25,7 +25,9 @@ class RulePatternTestCase(unittest.TestCase):
 
 
 class RuleMethodsTestCase(unittest.TestCase):
-    data = ['J(0.5)->JJ', 'A<F(0.5)->FF', 'A<B>A->FB']
+    data = ['J[0.5]->JJ', 'A<F[0.5]->FF',
+            'A<B>A->FB', '!A<K>!B->KBAA',
+            'A<F>!A->FF']
 
     def test_searching(self):
         with self.subTest():
@@ -37,6 +39,9 @@ class RuleMethodsTestCase(unittest.TestCase):
         with self.subTest():
             case_value = rule.give_rule_with_base('J', self.data)
             self.assertEqual(case_value, self.data[0])
+        with self.subTest():
+            case_value = rule.give_rule_with_base('K', self.data)
+            self.assertEqual(case_value, self.data[3])
 
     def test_requirements_checker(self):
         with self.subTest():
@@ -47,3 +52,7 @@ class RuleMethodsTestCase(unittest.TestCase):
             test_state = 'AAAAA'
             val = rule.check_pos_requirements(self.data[2], test_state, 1)
             self.assertEqual(val, False)
+        with self.subTest():
+            test_state = 'AFBA'
+            val = rule.check_pos_requirements(self.data[4], test_state, 1)
+            self.assertEqual(val, True)

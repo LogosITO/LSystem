@@ -2,14 +2,14 @@ import re
 from random import random, seed
 from typing import Optional
 
-# LSystem step rule pattern
 
-base = r'(?P<Base>[A-Za-z + -]+)'
+base = r'(?P<Base>[A-Za-z + - ( )]+)'
 pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
-res = r'(?P<Result>[A-Za-z \W]+)'
-rrn = r'(?P<RequiredRightNeighbour>[A-Za-z + -]+)'
-rln = r'(?P<ReguiredLeftNeighbour>[A-Za-z + -]+)'
-pattern = fr'^({rln}<)?{base}(\({pos}\))?(>{rrn})?->{res}$'
+res = r'(?P<Result>[A-Za-z\W]+)'
+rrn = r'(?P<RequiredRightNeighbour>(!?[A-Za-z + -]+))'
+rln = r'(?P<ReguiredLeftNeighbour>(!?[A-Za-z + -]+))'
+
+pattern = fr'^({rln}<)?{base}(\[{pos}\])?(>{rrn})?->{res}?$'
 
 
 def parse_rule(data: str) -> dict[str, str]:
@@ -31,18 +31,23 @@ def check_pos_requirements(rule: str, state: str, idx: int) -> bool:
     if state[idx] != parse_rule(rule)['Base']:
         return False
     dict_rule: dict[str, str] = parse_rule(rule)
-    rneighbour: str = dict_rule['RequiredRightNeighbour']
-    lneighbour: str = dict_rule['ReguiredLeftNeighbour']
+    req_rnb: str = dict_rule['RequiredRightNeighbour']
+    req_lnb: str = dict_rule['ReguiredLeftNeighbour']
+    rneighbour = state[idx+1:idx+len(req_rnb)+1]
+    lneighbour = state[idx-len(req_lnb):idx]
     right, left = False, False
-    if rneighbour is None or state[idx+1:idx+len(rneighbour)+1] == rneighbour:
+    rneg, lneg = '!' in req_rnb, '!' in req_lnb
+    if rneg and rneighbour[1:] != req_rnb or \
+       not rneg and (rneighbour == req_rnb or req_rnb is None):
         right = True
-    if lneighbour is None or state[idx-len(lneighbour):idx] == lneighbour:
+    if lneg and lneighbour[1:] != req_lnb or \
+       not lneg and (lneighbour == req_lnb or req_lnb is None):
         left = True
     return bool(right * left)
 
 
 def check_posibility(rule: str) -> bool:
-    seed(0)
+    seed(1)
     pos: Optional[str] = parse_rule(rule)['Possibility']
     if pos is None or random() <= float(pos):
         return True
@@ -53,15 +58,3 @@ def check_all_requirements(rule: str, state: str, idx: int) -> bool:
     pos_req: bool = check_pos_requirements(rule, state, idx)
     posibility: bool = check_posibility(rule)
     return bool(pos_req * posibility)
-
-
-if __name__ == '__main__':
-    test_rule1 = 'F->F+F'
-    test_rule2 = 'A<F>B->FF'
-    test1, test2 = 'F', 'A'
-    test_state1, test_state2 = 'AFB', 'FFF'
-    print(parse_rule(test_rule1))
-    print(parse_rule(test_rule2))
-    print(give_rule_with_base(test1, [test_rule1, test_rule2]))
-    print(check_pos_requirements(test_rule2, test_state1, 1))
-    print(check_pos_requirements(test_rule2, test_state2, 1))
