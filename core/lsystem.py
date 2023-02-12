@@ -47,6 +47,7 @@ class BaseLSystem:
         for i in range(depth):
             self.step()
 
+
 @dataclass(init=True, frozen=False)
 class WMLLSystem(BaseLSystem):
     leaf_symbol: str = '*'
@@ -58,4 +59,3 @@ class WMLLSystem(BaseLSystem):
 
     def add_rule(self, new_rule: str) -> bool:
         return super().add_rule(new_rule)
-

@@ -19,6 +19,9 @@ class RulePatternTestCase(unittest.TestCase):
         with self.subTest():
             test_step = 'F->F+FF'
             self.assertNotEqual(rule.parse_rule(test_step), None)
+        with self.subTest():
+            test_step = 'F(x)->F(x+1)'
+            self.assertNotEqual(rule.parse_rule(test_step), None)
 
     def test_pattern_raise(self):
         self.assertRaises(TypeError, rule.parse_rule)

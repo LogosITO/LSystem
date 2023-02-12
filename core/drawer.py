@@ -13,8 +13,9 @@ def get_new_coords(coordx: float, coordy: float,
 
 def draw_tree_base(image_size: tuple[int, int], base_coords: list[float],
                    state: str, alphabet: dict[str, float],
-                   angles: dict[str, float], thickness: int, ls: str = '',
-                   saving_filename: str = "tree.png", preview: bool = True):
+                   angles: dict[str, float], thickness: int,
+                   length_reduction: float = 1, filename: str = "tree.png",
+                   preview: bool = True,  ls: str = ''):
 
     image = Image.new('RGB', image_size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(image)
@@ -42,15 +43,15 @@ def draw_tree_base(image_size: tuple[int, int], base_coords: list[float],
         elif move in angles:
             angle += angles[move]
 
-    image.save(saving_filename, "PNG")
+    image.save(filename, "PNG")
     if preview is True:
         image.show()
 
 
 if __name__ == '__main__':
-    tree = WMLLSystem('X', 1, {'F': 100, 'X': 0},  # noqa: F405
-                   {'-': 25, '+': 25},
-                   ['X->F+[X-F*+F]', 'F->FF'])
-    tree.generate(3)
+    tree = WMLLSystem('X', 1, {'F': 20, 'X': 0},  # noqa: F405
+                      {'-': -15, '+': 22.5},
+                      ['X->F-[[X]+X*]+F[+FX]-X*', 'F->FF'])
+    tree.generate(5)
     draw_tree_base((2000, 2000), [1000, 1600], tree.state,
-                   tree.alphabet, tree.angles, 3, '*')
+                   tree.alphabet, tree.angles, 3, ls='*')

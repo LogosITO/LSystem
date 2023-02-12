@@ -7,8 +7,8 @@ import lsystem as ls   # type: ignore # noqa: E402
 
 class BaseLSystemTestCase(unittest.TestCase):
     Test_LSystem = ls.BaseLSystem('F', 10, {'F': 10, 'A': 5},
-                              {'-': 30, '+': 30},
-                              ['F->FAF', 'A<F->FA'])
+                                  {'-': 30, '+': 30},
+                                  ['F->FAF', 'A<F->FA'])
 
     def test_rule_adding(self):
         with self.subTest():

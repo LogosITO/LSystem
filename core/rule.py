@@ -5,12 +5,15 @@ from globals import LAS
 
 
 base = fr'(?P<Base>[A-Za-z + - ( ) {LAS}]+)'
+par = r'\((?P<Parameters>[^,\)]+(?:, [^,\)]*)*)\)'
 pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
 res = fr'(?P<Result>[A-Za-z {LAS} \W]+)'
+rpar = r'\((?P<ResultParameters>[^,\)]+(?:, [^,\)]*)*)\)'
 rrn = r'(?P<RequiredRightNeighbour>(!?[A-Za-z + -]+))'
 rln = r'(?P<ReguiredLeftNeighbour>(!?[A-Za-z + -]+))'
 
-pattern = fr'^({rln}<)?{base}(\[{pos}\])?(>{rrn})?->{res}?$'
+
+pattern = fr'^({rln}<)?{base}({par})?(\[{pos}\])?(>{rrn})?->{res}({rpar}?)?$'
 
 
 def parse_rule(data: str) -> dict[str, str]:
@@ -35,7 +38,7 @@ def check_pos_requirements(rule: str, state: str, idx: int) -> bool:
     req_rnb: str = dict_rule['RequiredRightNeighbour']
     req_lnb: str = dict_rule['ReguiredLeftNeighbour']
     right, left = False, False
-    rneq, lneg = False, False
+    rneg, lneg = False, False
     if req_rnb is None:
         right = True
     else:
@@ -46,10 +49,10 @@ def check_pos_requirements(rule: str, state: str, idx: int) -> bool:
     else:
         lneighbour = state[idx-len(req_lnb):idx]
         lneg = '!' in req_lnb
-    if not right and (rneg and rneighbour[1:] != req_rnb or \
+    if not right and (rneg and rneighbour[1:] != req_rnb or
        not rneg and (rneighbour == req_rnb or req_rnb is None)):
         right = True
-    if not left and (lneg and lneighbour[1:] != req_lnb or \
+    if not left and (lneg and lneighbour[1:] != req_lnb or
        not lneg and (lneighbour == req_lnb or req_lnb is None)):
         left = True
     return bool(right * left)
