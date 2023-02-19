@@ -1,5 +1,5 @@
 import re
-from random import random, seed
+from random import random
 from typing import Optional
 from globals import LAS
 
@@ -59,7 +59,6 @@ def check_pos_requirements(rule: str, state: str, idx: int) -> bool:
 
 
 def check_posibility(rule: str) -> bool:
-    seed(1)
     pos: Optional[str] = parse_rule(rule)['Possibility']
     if pos is None or random() <= float(pos):
         return True

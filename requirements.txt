@@ -3,3 +3,4 @@ mypy
 typing 
 pillow
 nose2
+numpy 
