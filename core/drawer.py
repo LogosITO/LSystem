@@ -1,8 +1,8 @@
 from PIL import Image
 from PIL import ImageDraw
-from math import sin, cos, radians
-from dataclasses import dataclass
-from lsystem import *   # type: ignore # noqa: F403
+from math import sin, cos, radians, floor
+from dataclasses import dataclass, field
+from lsystem import WMLLSystem
 
 
 def get_new_coords(coordx: float, coordy: float,
@@ -14,17 +14,18 @@ def get_new_coords(coordx: float, coordy: float,
 
 @dataclass(init=True, frozen=True)
 class Drawer:
-    image_size: tuple[int, int] = field(init=True, default=(1920, 1080))
+    image_size: tuple[int, int] = field(init=True, default=(1600, 900))
     filename: str = field(init=True, default='tree.png')
-    lsystems: list[BaseLSystem] = field(init=False, default_factory=list)
+    thickness_reduction: float = field(init=True, default=0.9)  # from 0 to 1
+    lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
 
-    def append_lsystem(self, lsystem: BaseLSystem):
+    def append_lsystem(self, lsystem: WMLLSystem):
         self.lsystems.append(lsystem)
-    
-    def extend_lsystem(self, lsystems: list[BaseLSystem]):
+
+    def extend_lsystems(self, lsystems: list[WMLLSystem]):
         self.lsystems.extend(lsystems)
 
-    def draw_tree(self, base_coords: list[int], lsystem: WMLLSystem):
+    def draw_tree(self, base_coords: list[float], lsystem: WMLLSystem):
 
         image = Image.new('RGB', self.image_size, (255, 255, 255, 0))
         draw = ImageDraw.Draw(image)
@@ -34,6 +35,8 @@ class Drawer:
         saved_angles: list[float] = []
 
         for move in lsystem.state:
+            lsystem.thickness *= self.thickness_reduction
+            lsystem.thickness = floor(lsystem.thickness)
             if move == '[':
                 saved_coords.append(coords)
                 saved_angles.append(angle)
@@ -42,29 +45,27 @@ class Drawer:
                 angle = saved_angles.pop()
             if move == lsystem.leaf_symbol:
                 draw.ellipse((coords[0], coords[1], coords[0] + 15,
-                            coords[1] + 20), fill='green', outline=(0, 0, 0))
+                              coords[1] + 20), fill='green', outline=(0, 0, 0))
             if move in lsystem.alphabet:
                 newcoords = get_new_coords(coords[0], coords[1],
-                                        angle, lsystem.alphabet[move])
+                                           angle, lsystem.alphabet[move])
                 draw.line((coords[0], coords[1], newcoords[0], newcoords[1]),
-                        width=lsystem.thickness, fill='black')
+                          width=lsystem.thickness, fill='black')
                 coords = newcoords
             elif move in lsystem.angles:
                 angle += lsystem.angles[move]
 
         image.save(self.filename, "PNG")
-    
-    def draw_tree_from_saved(self, base_coords: list[int], ls_idx: int):
-        self.draw_tree(base_coords, self.lsystems[ls_idx])
 
-    
+    def draw_tree_from_saved(self, base_coords: list[float], ls_idx: int):
+        self.draw_tree(base_coords, self.lsystems[ls_idx])
 
 
 if __name__ == '__main__':
-    tree = WMLLSystem('X', 1, {'F': 15, 'X': 0},  # noqa: F405
-                      {'-': -30.5, '+': 30.5},
-                      ['X[0.9]->F-[[X]+X*]+F[+FX]-X*', 'F->FF'])
+    tree = WMLLSystem('X', 60, {'F': 15, 'X': 0},  # noqa: F405
+                      {'-': -12.5, '+': 25.5},
+                      ['X->F-[[X]+X*]+F[+FX]-X*', 'F->FF', 'XF->FX+[X--F]'])
     tree.generate(5)
-    pen = Drawer((2000, 2000), 'treelol.png')
+    pen = Drawer((1500, 1000), 'treesecond.png')
     pen.append_lsystem(tree)
-    pen.draw_tree_from_saved([1000, 1000], 0)
+    pen.draw_tree_from_saved([750, 1000], 0)
