@@ -1,22 +1,19 @@
 import rule
 from dataclasses import dataclass, field
-from globals import LAS
 
 
 @dataclass(init=True, frozen=False)
 class BaseLSystem:
-    axiom: str
-    thickness: float
-    alphabet: dict[str, float]
-    angles: dict[str, float]
-    rules: list[str]
+    axiom: str = field(init=True, default='')
+    thickness: float = field(init=True, default=1)
+    alphabet: dict[str, float] = field(init=True, default_factory=dict)
+    angles: dict[str, float] = field(init=True, default_factory=dict)
+    rules: list[str] = field(init=True, default_factory=list)
     parametrized_rules: list[str] = field(init=True, default_factory=list)
     length_reduction: float = field(init=True, default=0.95)
     state: str = field(init=False, default='')
 
     def __post_init__(self):
-        if len(self.alphabet) < 1:
-            raise "Alphabet does not exist!"
         self.state = self.axiom
 
     def add_rule(self, new_rule: str) -> bool:
@@ -54,8 +51,6 @@ class WMLLSystem(BaseLSystem):
 
     def __post_init__(self):
         super().__post_init__()
-        if self.leaf_symbol not in LAS:
-            raise ValueError('Leaf symbol not allowed! Use LAS symbols!')
 
     def add_rule(self, new_rule: str) -> bool:
         return super().add_rule(new_rule)

@@ -1,13 +1,13 @@
 import re
 from random import random
 from typing import Optional
-from globals import LAS
+from string import punctuation
 
 
-base = fr'(?P<Base>[A-Za-z + - ( ) {LAS}]+)'
+base = fr'(?P<Base>[A-Za-z + - ( ) {punctuation}]+)'
 par = r'\((?P<Parameters>[^,\)]+(?:, [^,\)]*)*)\)'
 pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
-res = fr'(?P<Result>[A-Za-z {LAS} \W]+)'
+res = fr'(?P<Result>[A-Za-z {punctuation} \W]+)'
 rpar = r'\((?P<ResultParameters>[^,\)]+(?:, [^,\)]*)*)\)'
 rrn = r'(?P<RequiredRightNeighbour>(!?[A-Za-z + -]+))'
 rln = r'(?P<ReguiredLeftNeighbour>(!?[A-Za-z + -]+))'
