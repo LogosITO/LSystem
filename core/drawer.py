@@ -12,12 +12,13 @@ def get_new_coords(coordx: float, coordy: float,
     return [new_coordx, new_coordy]
 
 
-@dataclass(init=True, frozen=True)
+@dataclass(init=True, frozen=False)
 class Drawer:
     image_size: tuple[int, int] = field(init=True, default=(1600, 900))
     filename: str = field(init=True, default='tree.png')
     thickness_reduction: float = field(init=True, default=0.9)  # from 0 to 1
     lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
+    pre_show: bool = True
 
     def append_lsystem(self, lsystem: WMLLSystem):
         self.lsystems.append(lsystem)
@@ -41,8 +42,11 @@ class Drawer:
                 saved_coords.append(coords)
                 saved_angles.append(angle)
             elif move == ']':
-                coords = saved_coords.pop()
-                angle = saved_angles.pop()
+                try:
+                    coords = saved_coords.pop()
+                    angle = saved_angles.pop()
+                except IndexError:
+                    pass
             if move == lsystem.leaf_symbol:
                 draw.ellipse((coords[0], coords[1], coords[0] + 15,
                               coords[1] + 20), fill='green', outline=(0, 0, 0))
@@ -54,6 +58,9 @@ class Drawer:
                 coords = newcoords
             elif move in lsystem.angles:
                 angle += lsystem.angles[move]
+
+        if self.pre_show:
+            image.show()
 
         image.save(self.filename, "PNG")
 
