@@ -1,5 +1,4 @@
 from typing import Union, NamedTuple
-from queue import Queue
 
 
 most_used_angle_symbols = ['+', '-', '^', '(', ')', '&', '?']
@@ -12,7 +11,8 @@ IPair = NamedTuple('IPair', [('first', int), ('second', int)])
 def URE_handler(range: Union[FPair, IPair], error_message: str = ''):
     if range.first < 0 or range.second < 0 or range.second - range.first < 0:
         raise ValueError(error_message)
-    
+
+
 def is_balanced(text, brackets="()[]{}"):
     opening_brackets, closing_brackets = brackets[::2], brackets[1::2]
     stack = list()
@@ -24,4 +24,4 @@ def is_balanced(text, brackets="()[]{}"):
                 stack.pop()
             else:
                 return False
-    return (not stack) 
+    return (not stack)

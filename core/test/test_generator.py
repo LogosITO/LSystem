@@ -13,5 +13,5 @@ class SettersPatternCase(unittest.TestCase):
             self.assertRaises(ValueError, gen.URE_handler, (10, -2))
         with self.subTest():
             self.assertRaises(ValueError, gen.URE_handler, (10, 2))
-    
-    #TODO: do tests for generating rules)
+
+    # TODO: do tests for generating rules)
