@@ -11,6 +11,11 @@ IPair = NamedTuple('IPair', [('first', int), ('second', int)])
 def URE_handler(range: Union[FPair, IPair], error_message: str = ''):
     if range.first < 0 or range.second < 0 or range.second - range.first < 0:
         raise ValueError(error_message)
+    
+
+def RFR_handler(value: float, value_name: str = ''):
+    if value < 0 or value > 1:
+        raise ValueError(f"{value_name} is not located between 0 and 1!")
 
 
 def is_balanced(text, brackets="()[]{}"):

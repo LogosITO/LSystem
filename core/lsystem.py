@@ -15,6 +15,7 @@ class BaseLSystem:
 
     def __post_init__(self):
         self.state = self.axiom
+        self.rules.sort()
 
     def add_rule(self, new_rule: str) -> bool:
         if new_rule in self.rules:
@@ -29,12 +30,15 @@ class BaseLSystem:
     def step(self):
         next_state = ''
         for idx, el in enumerate(self.state):
-            now = rule.give_rule_with_base(el, self.rules)
-            if now is None:
+            rules_now = rule.get_rules_with_base(el, self.rules)
+            if len(rules_now) == 0:
                 next_state += el
                 continue
-            if rule.check_all_requirements(now, self.state, idx) is True:
-                next_state += rule.parse_rule(now)['Result']
+            for now in rules_now:
+                if rule.check_all_requirements(now, self.state, idx) is True:
+                    next_state += rule.parse_rule(now)['Result']
+                    continue
+            
         if next_state != '':
             self.state = next_state
 

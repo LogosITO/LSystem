@@ -16,7 +16,7 @@ def get_new_coords(coordx: float, coordy: float,
 class Drawer:
     image_size: tuple[int, int] = field(init=True, default=(1600, 900))
     filename: str = field(init=True, default='tree.png')
-    thickness_reduction: float = field(init=True, default=0.9)  # from 0 to 1
+    thickness_reduction: float = field(init=True, default=1)  # from 0 to 1
     lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
     pre_show: bool = True
 
@@ -69,10 +69,12 @@ class Drawer:
 
 
 if __name__ == '__main__':
-    tree = WMLLSystem('X', 60, {'F': 15, 'X': 0},  # noqa: F405
+    tree = WMLLSystem('FX', 60, {'F': 15, 'X': 0},  # noqa: F405
                       {'-': -12.5, '+': 25.5},
-                      ['X->F-[[X]+X*]+F[+FX]-X*', 'F->FF', 'XF->FX+[X--F]'])
-    tree.generate(5)
+                      ['X>F->F[+XFXF-X]', 'F<X->F[-XFXF+X]', 'F->FF'])
+    tree.thickness = 4
+    tree.generate(4)
+    print(tree.state)
     pen = Drawer((1500, 1000), 'treesecond.png')
     pen.append_lsystem(tree)
     pen.draw_tree_from_saved([750, 1000], 0)

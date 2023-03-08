@@ -1,10 +1,10 @@
 import re
+from utils import IPair, URE_handler
 from random import random
-from typing import Optional
+from typing import Optional, Final
 from string import punctuation
 
-
-base = fr'(?P<Base>[A-Za-z + - ( ) {punctuation}]+)'
+base = fr'(?P<Base>[A-Za-z + - ( )]+)'
 par = r'\((?P<Parameters>[^,\)]+(?:, [^,\)]*)*)\)'
 pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
 res = fr'(?P<Result>[A-Za-z {punctuation} \W]+)'
@@ -13,8 +13,36 @@ rrn = r'(?P<RequiredRightNeighbour>(!?[A-Za-z + -]+))'
 rln = r'(?P<ReguiredLeftNeighbour>(!?[A-Za-z + -]+))'
 
 
-pattern = fr'^({rln}<)?{base}({par})?(\[{pos}\])?(>{rrn})?->{res}({rpar}?)?$'
+pattern: Final[str] = fr'^({rln}<)?{base}({par})?(\[{pos}\])?(>{rrn})?->{res}({rpar}?)?$'
 
+
+class RulePatternCreater:
+    __base = r'^(?P<RLN>)(?P<BASE>)(?P<PAR>)(?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
+
+    def __add_suitable_chars(self, group_idx: int, symbols: str):
+        self.__base = self.__base[:group_idx] + f'[{symbols}]' + self.__base[group_idx:]
+
+    def __add_range_of_chars(self, group_idx: int, borders: IPair):
+        f_idx = self.__base[group_idx:].find(']') + group_idx + 1
+        self.__base = self.__base[:f_idx] + '{'+ str(borders.first) + ',' + \
+             str(borders.second) + '}' + self.__base[f_idx:]
+    
+    def add_group_info(self, group_name: str, symbols: str, borders: IPair):
+        URE_handler(borders, 'Using counters range is not available!')
+        group_idx = self.__base.find(group_name.upper())
+        if group_idx == -1:
+            raise ValueError('Group name does not exist!')
+        idx = group_idx + len(group_name) + 1
+        self.__add_suitable_chars(group_idx=idx, symbols=symbols)
+        self.__add_range_of_chars(group_idx=idx, borders=borders)
+        
+    def get_pattern(self):
+        return self.__base
+    
+    def clear_changes(self):
+        self.__base = r'^(?P<RLN>)(?P<BASE>)(?P<PAR>) \
+            (?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
+    
 
 def parse_rule(data: str) -> dict[str, str]:
     auto = re.compile(pattern)
@@ -23,12 +51,19 @@ def parse_rule(data: str) -> dict[str, str]:
         raise TypeError('The rule does not match the given pattern!')
     return m.groupdict()
 
-
-def give_rule_with_base(base: str, rules: list[str]) -> Optional[str]:
+def get_first_rule_with_base(base: str, rules: list[str]) -> Optional[str]:
     for rule in rules:
         if base == parse_rule(rule)['Base']:
             return rule
     return None
+
+
+def get_rules_with_base(base: str, rules: list[str]) -> list[str]:
+    res = list()
+    for rule in rules:
+        if base == parse_rule(rule)['Base']:
+            res.append(rule)
+    return res
 
 
 def check_pos_requirements(rule: str, state: str, idx: int) -> bool:

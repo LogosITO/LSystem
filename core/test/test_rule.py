@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 import rule  # type: ignore # noqa: E402
+from utils import IPair
 
 
 data = ['J[0.5]->JJ', 'A<F[0.5]->FF',
@@ -71,3 +72,22 @@ class RuleMethodsTestCase(unittest.TestCase):
             test_state = 'AFBA'
             val = rule.check_pos_requirements(data[4], test_state, 1)
             self.assertEqual(val, True)
+
+class PatternCreaterTestCase(unittest.TestCase):
+    r = rule.RulePatternCreater()
+
+    def searching_test(self):
+        with self.subTest():
+            with self.assertRaises(ValueError):
+                self.r.add_group_info('bas', 'ABC', IPair(1, 2))
+        with self.subTest():
+            with self.assertRaises(ValueError):
+                self.r.add_group_info('base', 'ABC', IPair(-1, 3))
+
+    def adding_info_test(self):
+        self.r.add_group_info('base', 'sdf', IPair(2, 5))
+        self.assertEqual(r'^(?P<RLN>)(?P<BASE>)(?P<PAR>)(?P<RRN>)->\
+                         (?P<RES>)(?P<RPAR>)$', self.r.get_pattern())
+
+    def tearDown(self):
+        self.r.clear_changes()
