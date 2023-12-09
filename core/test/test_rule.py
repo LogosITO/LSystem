@@ -2,8 +2,8 @@ import unittest
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
-import rule  # type: ignore # noqa: E402
-from utils import IPair
+from lsystem import rule  # type: ignore # noqa: E402
+from lsystem.utils import IPair
 
 
 data = ['J[0.5]->JJ', 'A<F[0.5]->FF',

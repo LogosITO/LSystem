@@ -2,7 +2,7 @@ from PIL import Image
 from PIL import ImageDraw
 from math import sin, cos, radians, floor
 from dataclasses import dataclass, field
-from lsystem import WMLLSystem
+from main import WMLLSystem
 
 
 def get_new_coords(coordx: float, coordy: float,
@@ -35,29 +35,29 @@ class Drawer:
         saved_coords: list[list[float]] = []
         saved_angles: list[float] = []
 
-        for move in lsystem.state:
+        for step in lsystem.state:
             lsystem.thickness *= self.thickness_reduction
             lsystem.thickness = floor(lsystem.thickness)
-            if move == '[':
+            if step == '[':
                 saved_coords.append(coords)
                 saved_angles.append(angle)
-            elif move == ']':
+            elif step == ']':
                 try:
                     coords = saved_coords.pop()
                     angle = saved_angles.pop()
                 except IndexError:
                     pass
-            if move == lsystem.leaf_symbol:
+            if step == lsystem.leaf_symbol:
                 draw.ellipse((coords[0], coords[1], coords[0] + 15,
                               coords[1] + 20), fill='green', outline=(0, 0, 0))
-            if move in lsystem.alphabet:
+            if step in lsystem.alphabet:
                 newcoords = get_new_coords(coords[0], coords[1],
-                                           angle, lsystem.alphabet[move])
+                                           angle, lsystem.alphabet[step])
                 draw.line((coords[0], coords[1], newcoords[0], newcoords[1]),
                           width=lsystem.thickness, fill='black')
                 coords = newcoords
-            elif move in lsystem.angles:
-                angle += lsystem.angles[move]
+            elif step in lsystem.angles:
+                angle += lsystem.angles[step]
 
         if self.pre_show:
             image.show()

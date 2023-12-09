@@ -1,8 +1,9 @@
-import unittest
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
-import lsystem as ls   # type: ignore # noqa: E402
+
+import unittest
+from lsystem import main as ls # type: ignore # noqa: E402
 
 
 class BaseLSystemTestCase(unittest.TestCase):

@@ -1,5 +1,11 @@
-import rule
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent))
+
 from dataclasses import dataclass, field
+from rule import (parse_rule, 
+                  check_all_requirements,
+                  get_rules_with_base)
 
 
 @dataclass(init=True, frozen=False)
@@ -21,7 +27,7 @@ class BaseLSystem:
         if new_rule in self.rules:
             return True
         try:
-            rule.parse_rule(new_rule)
+            parse_rule(new_rule)
         except TypeError:
             return False
         self.rules.append(new_rule)
@@ -30,13 +36,13 @@ class BaseLSystem:
     def step(self):
         next_state = ''
         for idx, el in enumerate(self.state):
-            rules_now = rule.get_rules_with_base(el, self.rules)
+            rules_now = get_rules_with_base(el, self.rules)
             if len(rules_now) == 0:
                 next_state += el
                 continue
             for now in rules_now:
-                if rule.check_all_requirements(now, self.state, idx) is True:
-                    next_state += rule.parse_rule(now)['Result']
+                if check_all_requirements(now, self.state, idx) is True:
+                    next_state += parse_rule(now)['Result']
                     continue
             
         if next_state != '':

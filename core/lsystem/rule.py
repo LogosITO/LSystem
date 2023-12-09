@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent))
+
 import re
 from utils import IPair, URE_handler
 from random import random
