@@ -8,7 +8,7 @@ from random import random
 from typing import Optional, Final
 from string import punctuation
 
-base = fr'(?P<Base>[A-Za-z + - ( )]+)'
+base = r'(?P<Base>[A-Za-z + - ( )]+)'
 par = r'\((?P<Parameters>[^,\)]+(?:, [^,\)]*)*)\)'
 pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
 res = fr'(?P<Result>[A-Za-z {punctuation} \W]+)'

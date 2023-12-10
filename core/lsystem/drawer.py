@@ -1,8 +1,8 @@
 from PIL import Image
 from PIL import ImageDraw
-from math import sin, cos, radians, floor
+from math import sin, cos, radians
 from dataclasses import dataclass, field
-from main import WMLLSystem
+from main import BaseLSystem, WMLLSystem
 
 
 def get_new_coords(coordx: float, coordy: float,
@@ -20,13 +20,26 @@ class Drawer:
     lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
     pre_show: bool = True
 
-    def append_lsystem(self, lsystem: WMLLSystem):
+    def append_lsystem(self, lsystem: WMLLSystem | BaseLSystem) -> None:
         self.lsystems.append(lsystem)
 
-    def extend_lsystems(self, lsystems: list[WMLLSystem]):
+    def extend_lsystems(self, lsystems: list[WMLLSystem]) -> None:
         self.lsystems.extend(lsystems)
 
-    def draw_tree(self, base_coords: list[float], lsystem: WMLLSystem):
+    def draw_leaf(self, img_pen: ImageDraw.Draw, coords: list[float]):
+        img_pen.ellipse((coords[0], coords[1], coords[0] + 15,
+                        coords[1] + 20), fill='green', outline=(0, 0, 0))
+
+    def draw_step(self, img_pen: ImageDraw.Draw, step: str, crd: list[float],
+                  angle: float, ls: WMLLSystem | BaseLSystem) -> list[float]:
+        newcoords = get_new_coords(crd[0], crd[1],
+                                   angle, ls.alphabet[step])
+        img_pen.line((crd[0], crd[1], newcoords[0], newcoords[1]),
+                     width=ls.thickness, fill='black')
+        return newcoords
+
+    def draw_tree(self, base_coords: list[float],
+                  lsystem: WMLLSystem | BaseLSystem) -> None:
 
         image = Image.new('RGB', self.image_size, (255, 255, 255, 0))
         draw = ImageDraw.Draw(image)
@@ -36,8 +49,7 @@ class Drawer:
         saved_angles: list[float] = []
 
         for step in lsystem.state:
-            lsystem.thickness *= self.thickness_reduction
-            lsystem.thickness = floor(lsystem.thickness)
+            lsystem.thickness = (self.thickness_reduction * lsystem.thickness)
             if step == '[':
                 saved_coords.append(coords)
                 saved_angles.append(angle)
@@ -47,15 +59,13 @@ class Drawer:
                     angle = saved_angles.pop()
                 except IndexError:
                     pass
-            if step == lsystem.leaf_symbol:
-                draw.ellipse((coords[0], coords[1], coords[0] + 15,
-                              coords[1] + 20), fill='green', outline=(0, 0, 0))
+            try:
+                if step == lsystem.leaf_symbol:
+                    self.draw_leaf(draw, coords)
+            except AttributeError:
+                pass
             if step in lsystem.alphabet:
-                newcoords = get_new_coords(coords[0], coords[1],
-                                           angle, lsystem.alphabet[step])
-                draw.line((coords[0], coords[1], newcoords[0], newcoords[1]),
-                          width=lsystem.thickness, fill='black')
-                coords = newcoords
+                coords = self.draw_step(draw, step, coords, angle, lsystem)
             elif step in lsystem.angles:
                 angle += lsystem.angles[step]
 
@@ -64,17 +74,17 @@ class Drawer:
 
         image.save(self.filename, "PNG")
 
-    def draw_tree_from_saved(self, base_coords: list[float], ls_idx: int):
+    def draw_saved_tree(self, base_coords: list[float], ls_idx: int) -> None:
         self.draw_tree(base_coords, self.lsystems[ls_idx])
 
 
 if __name__ == '__main__':
-    tree = WMLLSystem('FX', 60, {'F': 15, 'X': 0},  # noqa: F405
-                      {'-': -12.5, '+': 25.5},
-                      ['X>F->F[+XFXF-X]', 'F<X->F[-XFXF+X]', 'F->FF'])
+    tree = WMLLSystem('FX', 60, {'F': 10, 'X': 0},  # noqa: F405
+                      {'-': -28.5, '+': 28.5},
+                      ['F->F', 'FF->X', 'X->F[+F][F][-F]X'])
     tree.thickness = 4
     tree.generate(4)
     print(tree.state)
     pen = Drawer((1500, 1000), 'treesecond.png')
     pen.append_lsystem(tree)
-    pen.draw_tree_from_saved([750, 1000], 0)
+    pen.draw_saved_tree([350, 1000], 0)

@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
 from dataclasses import dataclass, field
-from rule import (parse_rule, 
+from rule import (parse_rule,
                   check_all_requirements,
                   get_rules_with_base)
 
@@ -44,7 +44,7 @@ class BaseLSystem:
                 if check_all_requirements(now, self.state, idx) is True:
                     next_state += parse_rule(now)['Result']
                     continue
-            
+
         if next_state != '':
             self.state = next_state
 
