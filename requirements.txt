@@ -1,6 +1,2 @@
-flake8
-mypy
 typing 
 pillow
-nose2
-numpy 

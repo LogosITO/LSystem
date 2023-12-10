@@ -3,6 +3,7 @@ from PIL import ImageDraw
 from math import sin, cos, radians
 from dataclasses import dataclass, field
 from main import BaseLSystem, WMLLSystem
+from utils import get_memory_usage, function_time
 
 
 def get_new_coords(coordx: float, coordy: float,
@@ -13,9 +14,27 @@ def get_new_coords(coordx: float, coordy: float,
 
 
 @dataclass(init=True, frozen=False)
-class Drawer:
+class ScreenHandler:
+    bg_color: tuple[int] = field(init=True, default=(255, 255, 255, 0))
     image_size: tuple[int, int] = field(init=True, default=(1600, 900))
-    filename: str = field(init=True, default='tree.png')
+    img: ImageDraw = field(init=False)
+    pen: ImageDraw.Draw = field(init=False)
+
+    def create_screen(self) -> ImageDraw.Draw:
+        self.img = Image.new('RGB', self.image_size, self.bg_color)
+        self.pen = ImageDraw.Draw(self.img)
+        return self.pen
+
+    def end_work(self, filename: str, show_state: bool = True):
+        if show_state:
+            self.img.show()
+        self.img.save(filename, "PNG")
+
+
+@dataclass(init=True, frozen=False)
+class Drawer:
+    screen: ScreenHandler = field(init=True, default_factory=ScreenHandler)
+    filename: str = field(init=True, default="tree")
     thickness_reduction: float = field(init=True, default=1)  # from 0 to 1
     lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
     pre_show: bool = True
@@ -41,12 +60,9 @@ class Drawer:
     def draw_tree(self, base_coords: list[float],
                   lsystem: WMLLSystem | BaseLSystem) -> None:
 
-        image = Image.new('RGB', self.image_size, (255, 255, 255, 0))
-        draw = ImageDraw.Draw(image)
-        coords: list[float] = base_coords
-        angle: float = 0
-        saved_coords: list[list[float]] = []
-        saved_angles: list[float] = []
+        draw = self.screen.create_screen()
+        coords, angle = base_coords, 0
+        saved_coords, saved_angles = [], []
 
         for step in lsystem.state:
             lsystem.thickness = (self.thickness_reduction * lsystem.thickness)
@@ -69,22 +85,25 @@ class Drawer:
             elif step in lsystem.angles:
                 angle += lsystem.angles[step]
 
-        if self.pre_show:
-            image.show()
-
-        image.save(self.filename, "PNG")
+        self.screen.end_work(self.filename)
 
     def draw_saved_tree(self, base_coords: list[float], ls_idx: int) -> None:
         self.draw_tree(base_coords, self.lsystems[ls_idx])
 
 
-if __name__ == '__main__':
-    tree = WMLLSystem('FX', 60, {'F': 10, 'X': 0},  # noqa: F405
-                      {'-': -28.5, '+': 28.5},
-                      ['F->F', 'FF->X', 'X->F[+F][F][-F]X'])
+@function_time
+def main():
+    win = ScreenHandler()
+    tree = WMLLSystem('XF', 60, {'F': 10, 'J': 4, 'X': 0},  # noqa: F405
+                      {'-': -28.5, '+': 28.5, '#': -10, '^': 10},
+                      ['X->X[JF+JX^F][JF-JX#F]', 'F->JFF'])
     tree.thickness = 4
-    tree.generate(4)
-    print(tree.state)
-    pen = Drawer((1500, 1000), 'treesecond.png')
+    tree.generate(5)
+    pen = Drawer(win, 'tree.png')
     pen.append_lsystem(tree)
-    pen.draw_saved_tree([350, 1000], 0)
+    pen.draw_saved_tree([350, 900], 0)
+    print(get_memory_usage())
+
+
+if __name__ == '__main__':
+    main()

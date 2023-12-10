@@ -1,0 +1,5 @@
+typing 
+pillow
+flake8
+mypy
+psutil

@@ -1,4 +1,21 @@
 from typing import Union, NamedTuple
+from time import perf_counter
+
+
+# Return memory usage in MIB
+def get_memory_usage() -> float:
+    import psutil
+    process = psutil.Process()
+    return process.memory_info().rss / 1024 ** 2
+
+
+def function_time(func: callable):
+    def wrapped(*args):
+        start_time = perf_counter()
+        res = func(*args)
+        print(f'Execution time: {perf_counter() - start_time}')
+        return res
+    return wrapped
 
 
 most_used_angle_symbols = ['+', '-', '^', '(', ')', '&', '?']
@@ -11,7 +28,7 @@ IPair = NamedTuple('IPair', [('first', int), ('second', int)])
 def URE_handler(range: Union[FPair, IPair], error_message: str = ''):
     if range.first < 0 or range.second < 0 or range.second - range.first < 0:
         raise ValueError(error_message)
-    
+
 
 def RFR_handler(value: float, value_name: str = ''):
     if value < 0 or value > 1:

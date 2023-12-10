@@ -2,16 +2,16 @@ import unittest
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
-from lsystem import rule  # type: ignore # noqa: E402
+from lsystem import rule 
 from lsystem.utils import IPair
 
 
 data = ['J[0.5]->JJ', 'A<F[0.5]->FF',
-            'A<B>A->FB', '!A<K>!B->KBAA',
-            'A<F>!A->FF', 'J->F+-A']
+        'A<B>A->FB', '!A<K>!B->KBAA',
+        'A<F>!A->FF', 'J->F+-A']
 
 
-grwb = lambda val: rule.get_rules_with_base(val, data)
+grwb = lambda val: rule.get_rules_with_base(val, data) 
 gfrwb = lambda val: rule.get_first_rule_with_base(val, data)
 
 
