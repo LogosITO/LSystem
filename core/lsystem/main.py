@@ -11,7 +11,7 @@ from rule import (parse_rule,
 @dataclass(init=True, frozen=False)
 class BaseLSystem:
     axiom: str = field(init=True, default='')
-    thickness: float = field(init=True, default=1)
+    thickness: float = field(init=True, default=4)
     alphabet: dict[str, float] = field(init=True, default_factory=dict)
     angles: dict[str, float] = field(init=True, default_factory=dict)
     rules: list[str] = field(init=True, default_factory=list)

@@ -3,3 +3,4 @@ pillow
 flake8
 mypy
 psutil
+xeger

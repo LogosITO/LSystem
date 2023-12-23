@@ -4,6 +4,7 @@ from math import sin, cos, radians
 from dataclasses import dataclass, field
 from main import BaseLSystem, WMLLSystem
 from utils import get_memory_usage, function_time
+from enum import Enum
 
 
 def get_new_coords(coordx: float, coordy: float,
@@ -12,6 +13,12 @@ def get_new_coords(coordx: float, coordy: float,
     new_coordy = coordy - cos(radians(angle)) * length
     return [new_coordx, new_coordy]
 
+
+class FinalState(Enum):
+    Nothing = 0
+    Saving = 1
+    Showing = 2
+    Default = 3
 
 @dataclass(init=True, frozen=False)
 class ScreenHandler:
@@ -29,6 +36,9 @@ class ScreenHandler:
         if show_state:
             self.img.show()
         self.img.save(filename, "PNG")
+    
+    def show(self):
+        self.img.show()
 
 
 @dataclass(init=True, frozen=False)
@@ -58,7 +68,8 @@ class Drawer:
         return newcoords
 
     def draw_tree(self, base_coords: list[float],
-                  lsystem: WMLLSystem | BaseLSystem) -> None:
+                  lsystem: WMLLSystem | BaseLSystem, 
+                  with_end: FinalState = FinalState.Default) -> None:
 
         draw = self.screen.create_screen()
         coords, angle = base_coords, 0
@@ -84,11 +95,29 @@ class Drawer:
                 coords = self.draw_step(draw, step, coords, angle, lsystem)
             elif step in lsystem.angles:
                 angle += lsystem.angles[step]
+            
+        self.final_catcher(self.filename, with_end)
 
-        self.screen.end_work(self.filename)
+    
+    def final_catcher(self, filename: str, with_end: FinalState):
+        match with_end:
+            case FinalState.Saving:
+                self.screen.end_work(self.filename, False)
+            case FinalState.Showing:
+                self.screen.show()
+            case FinalState.Default:
+                self.screen.end_work(self.filename, True)
 
-    def draw_saved_tree(self, base_coords: list[float], ls_idx: int) -> None:
+
+    def draw_saved_tree(self, base_coords: list[float], ls_idx: int, 
+                        with_end: FinalState = FinalState.Default) -> None:
         self.draw_tree(base_coords, self.lsystems[ls_idx])
+    
+    def draw_saved_trees(self, base_coords: list[list[float]], 
+                         with_end: FinalState = FinalState.Saving) -> None:
+        if len(self.lsystems) == len(base_coords):
+            for idx, ls in enumerate(self.lsystems):
+                self.draw_tree(base_coords[idx], ls, with_end)
 
 
 @function_time
@@ -96,7 +125,7 @@ def main():
     win = ScreenHandler()
     tree = WMLLSystem('XF', 60, {'F': 10, 'J': 4, 'X': 0},  # noqa: F405
                       {'-': -28.5, '+': 28.5, '#': -10, '^': 10},
-                      ['X->X[JF+JX^F][JF-JX#F]', 'F->JFF'])
+                      ['X->X[JF+JX^F*][JF-JX#F*]', 'F->JFF'])
     tree.thickness = 4
     tree.generate(5)
     pen = Drawer(win, 'tree.png')

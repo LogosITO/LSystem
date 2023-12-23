@@ -12,6 +12,7 @@ data = ['J[0.5]->JJ', 'A<F[0.5]->FF',
 
 
 grwb = lambda val: rule.get_rules_with_base(val, data) 
+grwb = lambda val: rule.get_rules_with_base(val, data) 
 gfrwb = lambda val: rule.get_first_rule_with_base(val, data)
 
 
@@ -74,20 +75,45 @@ class RuleMethodsTestCase(unittest.TestCase):
             self.assertEqual(val, True)
 
 class PatternCreaterTestCase(unittest.TestCase):
-    r = rule.RulePatternCreater()
+    def setUp(self) -> None:
+        self.r = rule.RulePatternCreater()
 
-    def searching_test(self):
+    def test_searching(self):
         with self.subTest():
             with self.assertRaises(ValueError):
-                self.r.add_group_info('bas', 'ABC', IPair(1, 2))
+                self.r.add_group_info('gooogle', 'ABC', IPair(1, 2))
         with self.subTest():
             with self.assertRaises(ValueError):
-                self.r.add_group_info('base', 'ABC', IPair(-1, 3))
+                self.r.add_group_info('yandexxx', 'ABC', IPair(-1, 3))
+        self.r.clear_changes()
 
-    def adding_info_test(self):
+    def test_adding_info(self):
         self.r.add_group_info('base', 'sdf', IPair(2, 5))
-        self.assertEqual(r'^(?P<RLN>)(?P<BASE>)(?P<PAR>)(?P<RRN>)->\
-                         (?P<RES>)(?P<RPAR>)$', self.r.get_pattern())
+        pat = r'^(?P<RLN>)(?P<BASE>[sdf]{2,5})(?P<PAR>)(?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
+        self.assertEqual(pat, self.r.get_pattern().strip())
+        self.r.clear_changes()
+    
+    def test_deleting_info(self):
+        with self.subTest():
+            self.r.delete_group('par')
+            pat = r'^(?P<RLN>)(?P<BASE>)(?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
+            self.assertEqual(pat, self.r.get_pattern())
+            self.r.clear_changes()
+        with self.subTest():
+            self.r.delete_group('rPaR')
+            pat = r'^(?P<RLN>)(?P<BASE>)(?P<PAR>)(?P<RRN>)->(?P<RES>)$'
+            print("HELLO", pat)
+            print("HELLO", self.r.get_pattern())
+            self.assertEqual(pat, self.r.get_pattern())
+            self.r.clear_changes()
+        with self.subTest():
+            self.r.delete_group('rln')
+            pat = r'^(?P<BASE>)(?P<PAR>)(?P<RRN>)->(?P<RES>)$'
+            self.assertEqual(pat, self.r.get_pattern())
+            self.r.clear_changes()
 
     def tearDown(self):
         self.r.clear_changes()
+
+if __name__ == "__main__":
+    unittest.main()
