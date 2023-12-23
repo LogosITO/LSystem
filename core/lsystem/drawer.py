@@ -50,6 +50,9 @@ class Drawer:
     lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
     pre_show: bool = True
 
+    def __post_init__(self):
+        self.screen.create_screen()
+
     def append_lsystem(self, lsystem: WMLLSystem | BaseLSystem) -> None:
         self.lsystems.append(lsystem)
 
@@ -71,8 +74,7 @@ class Drawer:
     def draw_tree(self, base_coords: list[float],
                   lsystem: WMLLSystem | BaseLSystem,
                   with_end: FinalState = FinalState.Default) -> None:
-
-        draw = self.screen.create_screen()
+        draw = self.screen.pen
         coords, angle = base_coords, 0
         saved_coords, saved_angles = [], []
 
@@ -96,9 +98,10 @@ class Drawer:
                 coords = self.draw_step(draw, step, coords, angle, lsystem)
             elif step in lsystem.angles:
                 angle += lsystem.angles[step]
-
+     
         self.final_catcher(self.filename, with_end)
 
+    
     def final_catcher(self, filename: str, with_end: FinalState):
         match with_end:
             case FinalState.Saving:
@@ -108,15 +111,20 @@ class Drawer:
             case FinalState.Default:
                 self.screen.end_work(self.filename, True)
 
-    def draw_saved_tree(self, base_coords: list[float], ls_idx: int,
+
+    def draw_saved_tree(self, base_coords: list[float], ls_idx: int, 
                         with_end: FinalState = FinalState.Default) -> None:
         self.draw_tree(base_coords, self.lsystems[ls_idx])
-
-    def draw_saved_trees(self, base_coords: list[list[float]],
+    
+    def draw_saved_trees(self, base_coords: list[list[float]], 
                          with_end: FinalState = FinalState.Saving) -> None:
         if len(self.lsystems) == len(base_coords):
             for idx, ls in enumerate(self.lsystems):
-                self.draw_tree(base_coords[idx], ls, with_end)
+                self.draw_tree(base_coords[idx], ls, FinalState.Nothing)
+            else:
+                self.final_catcher(self.filename, with_end)
+        else:
+            raise IndexError("Can't math base_coords with lsystems")
 
 
 @function_time
@@ -126,7 +134,7 @@ def main():
                       {'-': -28.5, '+': 28.5, '#': -10, '^': 10},
                       ['X->X[JF+JX^F*][JF-JX#F*]', 'F->JFF'])
     tree.thickness = 4
-    tree.generate(5)
+    tree.generate(6)
     pen = Drawer(win, 'tree.png')
     pen.append_lsystem(tree)
     pen.draw_saved_tree([350, 900], 0)

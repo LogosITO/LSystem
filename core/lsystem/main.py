@@ -21,7 +21,7 @@ class BaseLSystem:
 
     def __post_init__(self):
         self.state = self.axiom
-        self.rules.sort()
+        #self.rules.sort()
 
     def add_rule(self, new_rule: str) -> bool:
         if new_rule in self.rules:

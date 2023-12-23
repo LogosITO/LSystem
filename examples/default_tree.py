@@ -14,8 +14,6 @@ def small_tree():
 
 if __name__ == '__main__':
     win = drawer.ScreenHandler()
-    pen = drawer.Drawer(win, 'tree.png', 1)
+    pen = drawer.Drawer(win, 'default_tree.png', 1)
     pen.append_lsystem(small_tree())
-    pen.append_lsystem(small_tree())
-    pen.draw_saved_tree([350, 850], 0)
-    pen.draw_saved_trees([[350, 850], [700, 900]])
+    pen.draw_saved_trees([[350, 850]], drawer.FinalState.Default)

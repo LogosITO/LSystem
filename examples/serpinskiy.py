@@ -13,6 +13,6 @@ def serpinskiy(generation: int = 6):
 
 if __name__ == '__main__':
     win = drawer.ScreenHandler()
-    pen = drawer.Drawer(win, 'tree.png')
+    pen = drawer.Drawer(win, 'serpinskiy.png')
     pen.append_lsystem(serpinskiy())
     pen.draw_saved_tree([350, 850], 0)
