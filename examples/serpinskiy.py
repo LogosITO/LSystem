@@ -6,7 +6,8 @@ from core.lsystem import main
 from core.lsystem import drawer
 
 def serpinskiy(generation: int = 6):
-    tree = main.WMLLSystem('F-G-G', 4, {'F': 10, 'G': 10}, {'+': 120, '-': -120}, ['F->F-G+F+G-F', 'G->GG'])
+    tree = main.WMLLSystem('F-G-G', 4, {'F': 10, 'G': 10}, 
+                           {'+': 120, '-': -120}, ['F->F-G+F+G-F', 'G->GG'])
     tree.generate(generation)
     return tree
 

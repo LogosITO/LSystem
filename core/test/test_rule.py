@@ -2,7 +2,7 @@ import unittest
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
-from lsystem import rule 
+from lsystem import rule
 from lsystem.utils import IPair
 
 
@@ -11,8 +11,8 @@ data = ['J[0.5]->JJ', 'A<F[0.5]->FF',
         'A<F>!A->FF', 'J->F+-A']
 
 
-grwb = lambda val: rule.get_rules_with_base(val, data) 
-grwb = lambda val: rule.get_rules_with_base(val, data) 
+grwb = lambda val: rule.get_rules_with_base(val, data)
+grwb = lambda val: rule.get_rules_with_base(val, data)
 gfrwb = lambda val: rule.get_first_rule_with_base(val, data)
 
 
@@ -49,7 +49,7 @@ class RuleMethodsTestCase(unittest.TestCase):
             self.assertEqual(grwb('J'), [data[0], data[-1]])
         with self.subTest():
             self.assertEqual(grwb('K'), [data[3]])
-        
+
     def test_gfrwb(self):
         with self.subTest():
             self.assertEqual(gfrwb('F'), data[1])
@@ -74,6 +74,7 @@ class RuleMethodsTestCase(unittest.TestCase):
             val = rule.check_pos_requirements(data[4], test_state, 1)
             self.assertEqual(val, True)
 
+
 class PatternCreaterTestCase(unittest.TestCase):
     def setUp(self) -> None:
         self.r = rule.RulePatternCreater()
@@ -92,7 +93,7 @@ class PatternCreaterTestCase(unittest.TestCase):
         pat = r'^(?P<RLN>)(?P<BASE>[sdf]{2,5})(?P<PAR>)(?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
         self.assertEqual(pat, self.r.get_pattern().strip())
         self.r.clear_changes()
-    
+
     def test_deleting_info(self):
         with self.subTest():
             self.r.delete_group('par')
@@ -114,6 +115,7 @@ class PatternCreaterTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.r.clear_changes()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -25,14 +25,11 @@ base_pattern: Final[str] = \
 
 
 class RulePatternCreater:
-    __base = fr'^(?P<RLN>)(?P<BASE>)(?P<PAR>)(?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
+    __base = r'^(?P<RLN>)(?P<BASE>)(?P<PAR>)(?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
 
     def __add_suitable_chars(self, group_idx: int, symbols: str) -> None:
         self.__base = self.__base[:group_idx] + \
                       f'[{symbols}]+' + self.__base[group_idx:]
-    def __add_suitable_chars(self, group_idx: int, symbols: str):
-        self.__base = self.__base[:group_idx] + \
-                      f'[{symbols}]' + self.__base[group_idx:]
 
     def __add_range_of_chars(self, group_idx: int, borders: IPair) -> None:
         f_idx = self.__base[group_idx:].find(']') + group_idx + 1
@@ -47,12 +44,12 @@ class RulePatternCreater:
         idx = group_idx + len(group_name) + 1
         self.__add_suitable_chars(group_idx=idx, symbols=symbols)
         self.__add_range_of_chars(group_idx=idx, borders=borders)
-    
+
     def delete_group(self, group_name: str) -> None:
         start = self.__base.find(group_name.upper()) - 4
         end = start + len(group_name) + 6
         self.__base = self.__base[:start] + self.__base[end:]
-    
+
     def delete_groups(self, group_names: list[str]) -> None:
         for group_name in group_names:
             self.delete_group(group_name)
@@ -71,7 +68,6 @@ def parse_rule(data: str, pattern=base_pattern) -> dict[str, str]:
     if m is None:
         raise TypeError('The rule does not match the given pattern!')
     return m.groupdict()
-
 
 
 def get_first_rule_with_base(base: str, rules: list[str]) -> Optional[str]:
@@ -128,8 +124,10 @@ def check_all_requirements(rule: str, state: str, idx: int) -> bool:
     posibility: bool = check_posibility(rule)
     return bool(pos_req * posibility)
 
+
 def generate_rule(pat):
     return xeger(pat)
+
 
 if __name__ == '__main__':
     print(generate_rule(base_pattern))
