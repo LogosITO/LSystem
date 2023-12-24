@@ -90,26 +90,24 @@ class PatternCreaterTestCase(unittest.TestCase):
 
     def test_adding_info(self):
         self.r.add_group_info('base', 'sdf', IPair(2, 5))
-        pat = r'^(?P<RLN>)(?P<BASE>[sdf]{2,5})(?P<PAR>)(?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
-        self.assertEqual(pat, self.r.get_pattern().strip())
+        pat = r'^(?P<RLN>)<(?P<BASE>[sdf]{2,5})\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
+        self.assertEqual(pat, self.r.get_pattern())
         self.r.clear_changes()
 
     def test_deleting_info(self):
         with self.subTest():
-            self.r.delete_group('par')
-            pat = r'^(?P<RLN>)(?P<BASE>)(?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
+            self.r.delete_group('base')
+            pat = r'^(?P<RLN>)\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
             self.assertEqual(pat, self.r.get_pattern())
             self.r.clear_changes()
         with self.subTest():
-            self.r.delete_group('rPaR')
-            pat = r'^(?P<RLN>)(?P<BASE>)(?P<PAR>)(?P<RRN>)->(?P<RES>)$'
-            print("HELLO", pat)
-            print("HELLO", self.r.get_pattern())
+            self.r.delete_group('rRN')
+            pat = r'^(?P<RLN>)<(?P<BASE>)\[(?P<POS>)\]->(?P<RES>)$'
             self.assertEqual(pat, self.r.get_pattern())
             self.r.clear_changes()
         with self.subTest():
             self.r.delete_group('rln')
-            pat = r'^(?P<BASE>)(?P<PAR>)(?P<RRN>)->(?P<RES>)$'
+            pat = r'^(?P<BASE>)\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
             self.assertEqual(pat, self.r.get_pattern())
             self.r.clear_changes()
 

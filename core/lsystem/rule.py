@@ -11,7 +11,6 @@ from xeger import xeger
 
 
 base = r'(?P<Base>[A-Za-z + - ( )]+)'
-base = r'(?P<Base>[A-Za-z + - ( )]+)'
 par = r'\((?P<Parameters>[^,\)]+(?:, [^,\)]*)*)\)'
 pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
 res = fr'(?P<Result>[A-Za-z {punctuation} \W]+)'
@@ -25,16 +24,20 @@ base_pattern: Final[str] = \
 
 
 class RulePatternCreater:
-    __base = r'^(?P<RLN>)(?P<BASE>)(?P<PAR>)(?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
+    __base = r'^(?P<RLN>)<(?P<BASE>)\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
+    __base_optional_groups = ['RLN', 'POS', 'RRN']
 
     def __add_suitable_chars(self, group_idx: int, symbols: str) -> None:
         self.__base = self.__base[:group_idx] + \
-                      f'[{symbols}]+' + self.__base[group_idx:]
+                      f'[{symbols}]' + self.__base[group_idx:]
 
     def __add_range_of_chars(self, group_idx: int, borders: IPair) -> None:
         f_idx = self.__base[group_idx:].find(']') + group_idx + 1
-        self.__base = self.__base[:f_idx] + '{' + str(borders.first) + ',' + \
-            str(borders.second) + '}' + self.__base[f_idx:]
+        if borders.first != borders.second:
+            self.__base = self.__base[:f_idx] + '{' + str(borders.first) + ',' + \
+                str(borders.second) + '}' + self.__base[f_idx:]
+        else:
+            self.__base = self.__base[:f_idx] + '{' + str(borders.first) + '}' + self.__base[f_idx:]
 
     def add_group_info(self, group_name: str, symbols: str, borders: IPair):
         URE_handler(borders, 'Using counters range is not available!')
@@ -46,8 +49,8 @@ class RulePatternCreater:
         self.__add_range_of_chars(group_idx=idx, borders=borders)
 
     def delete_group(self, group_name: str) -> None:
-        start = self.__base.find(group_name.upper()) - 4
-        end = start + len(group_name) + 6
+        start = self.__base.find(group_name.upper()) - 5
+        end = start + len(group_name) + 7
         self.__base = self.__base[:start] + self.__base[end:]
 
     def delete_groups(self, group_names: list[str]) -> None:
@@ -56,10 +59,17 @@ class RulePatternCreater:
 
     def get_pattern(self):
         return self.__base
+    
+    def get_base_optional_groups(self):
+        return self.__base_optional_groups
+    
+    def get_all_groups(self):
+        res = self.get_base_optional_groups()
+        res.extend(['BASE', 'RES'])
+        return res
 
     def clear_changes(self):
-        self.__base = r'^(?P<RLN>)(?P<BASE>)(?P<PAR>) \
-            (?P<RRN>)->(?P<RES>)(?P<RPAR>)$'
+        self.__base = r'^(?P<RLN>)<(?P<BASE>)\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
 
 
 def parse_rule(data: str, pattern=base_pattern) -> dict[str, str]:
@@ -130,4 +140,5 @@ def generate_rule(pat):
 
 
 if __name__ == '__main__':
-    print(generate_rule(base_pattern))
+    rl = RulePatternCreater()
+    print(rl.get_all_groups())

@@ -24,3 +24,6 @@ class BaseLSystemTestCase(unittest.TestCase):
             new_rule = 'F->FAF'
             res = self.Test_LSystem.add_rule(new_rule)
             self.assertEqual(res, True)
+
+if __name__ == '__main__':
+    unittest.main()
