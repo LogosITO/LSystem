@@ -19,7 +19,7 @@ class BaseLSystem:
     length_reduction: float = field(init=True, default=0.95)
     state: str = field(init=False, default='')
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.state = self.axiom
         #self.rules.sort()
 
@@ -32,8 +32,15 @@ class BaseLSystem:
             return False
         self.rules.append(new_rule)
         return True
+    
+    def change_rules(self, new_rules: list[str]) -> bool:
+        if self.rules == new_rules:
+            return True
+        else:
+            self.rules = new_rules
+            return True
 
-    def step(self):
+    def step(self) -> None:
         next_state = ''
         for idx, el in enumerate(self.state):
             rules_now = get_rules_with_base(el, self.rules)
@@ -48,7 +55,7 @@ class BaseLSystem:
         if next_state != '':
             self.state = next_state
 
-    def generate(self, depth: int):
+    def generate(self, depth: int) -> None:
         if depth < 1:
             raise ValueError
         for i in range(depth):

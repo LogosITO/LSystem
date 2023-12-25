@@ -49,9 +49,15 @@ class RulePatternCreater:
         self.__add_range_of_chars(group_idx=idx, borders=borders)
 
     def delete_group(self, group_name: str) -> None:
-        start = self.__base.find(group_name.upper()) - 5
-        end = start + len(group_name) + 7
+        delta_b, delta_f = 5, 7
+        if group_name == 'POS':
+            delta_b, delta_f = 6, 10
+        start = self.__base.find(group_name.upper()) - delta_b
+        end = start + len(group_name) + delta_f
         self.__base = self.__base[:start] + self.__base[end:]
+        obg = self.__base_optional_groups
+        del obg[obg.index(group_name)]
+        self.__base_optional_groups = obg
 
     def delete_groups(self, group_names: list[str]) -> None:
         for group_name in group_names:
@@ -70,6 +76,7 @@ class RulePatternCreater:
 
     def clear_changes(self):
         self.__base = r'^(?P<RLN>)<(?P<BASE>)\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
+        self.__base_optional_groups = ['RLN', 'POS', 'RRN']
 
 
 def parse_rule(data: str, pattern=base_pattern) -> dict[str, str]:

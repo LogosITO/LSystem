@@ -17,7 +17,7 @@ def function_time(func: callable):
     return wrapped
 
 
-most_used_angle_symbols = ['+', '-', '^', '#', '@', '&', '?']
+generator_angle_symbols = ['+', '#', '@', '&', '?', '=', '%']
 
 
 FPair = NamedTuple('FPair', [('first', float), ('second', float)])
