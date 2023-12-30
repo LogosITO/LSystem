@@ -8,6 +8,7 @@ def get_memory_usage() -> float:
     process = psutil.Process()
     return process.memory_info().rss / 1024 ** 2
 
+
 def function_time(func: callable):
     def wrapped(*args):
         start_time = perf_counter()

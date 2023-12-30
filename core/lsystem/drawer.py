@@ -98,10 +98,9 @@ class Drawer:
                 coords = self.draw_step(draw, step, coords, angle, lsystem)
             elif step in lsystem.angles:
                 angle += lsystem.angles[step]
-     
+
         self.final_catcher(self.filename, with_end)
 
-    
     def final_catcher(self, filename: str, with_end: FinalState):
         match with_end:
             case FinalState.Saving:
@@ -111,12 +110,11 @@ class Drawer:
             case FinalState.Default:
                 self.screen.end_work(self.filename, True)
 
-
-    def draw_saved_tree(self, base_coords: list[float], ls_idx: int, 
+    def draw_saved_tree(self, base_coords: list[float], ls_idx: int,
                         with_end: FinalState = FinalState.Default) -> None:
         self.draw_tree(base_coords, self.lsystems[ls_idx])
-    
-    def draw_saved_trees(self, base_coords: list[list[float]], 
+
+    def draw_saved_trees(self, base_coords: list[list[float]],
                          with_end: FinalState = FinalState.Saving) -> None:
         if len(self.lsystems) == len(base_coords):
             for idx, ls in enumerate(self.lsystems):

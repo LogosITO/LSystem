@@ -3,11 +3,10 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
 import re
-from utils import IPair, URE_handler
+from utils import IPair
 from random import random
 from typing import Optional, Final
 from string import punctuation
-from xeger import xeger
 
 
 base = r'(?P<Base>[A-Za-z + - ( )]+)'
@@ -24,59 +23,71 @@ base_pattern: Final[str] = \
 
 
 class RulePatternCreater:
-    __base = r'^(?P<RLN>)<(?P<BASE>)\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
-    __base_optional_groups = ['RLN', 'POS', 'RRN']
+    __base = [r'^(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)\]', r'>(?P<RRN>)', r'->(?P<RES>)$']
+    __base_names = ['RLN', 'BASE', 'POS', 'RRN', 'RES']
 
     def __add_suitable_chars(self, group_idx: int, symbols: str) -> None:
-        self.__base = self.__base[:group_idx] + \
-                      f'[{symbols}]' + self.__base[group_idx:]
+        group = self.__base[group_idx]
+        idx = group.find(')')
+        group = group[:idx] + f'[{symbols}]' + group[idx:]
+        self.__base[group_idx] = group
 
     def __add_range_of_chars(self, group_idx: int, borders: IPair) -> None:
-        f_idx = self.__base[group_idx:].find(']') + group_idx + 1
-        if borders.first != borders.second:
-            self.__base = self.__base[:f_idx] + '{' + str(borders.first) + ',' + \
-                str(borders.second) + '}' + self.__base[f_idx:]
-        else:
-            self.__base = self.__base[:f_idx] + '{' + str(borders.first) + '}' + self.__base[f_idx:]
+        group = self.__base[group_idx]
+        start, end = group.find(']'), group.find(')')
+        group = group[:start + 1] + '{' + str(borders.first) + ',' + \
+            str(borders.second) + '}' + group[end:]
+        self.__base[group_idx] = group
 
     def add_group_info(self, group_name: str, symbols: str, borders: IPair):
-        URE_handler(borders, 'Using counters range is not available!')
-        group_idx = self.__base.find(group_name.upper())
-        if group_idx == -1:
-            raise ValueError('Group name does not exist!')
-        idx = group_idx + len(group_name) + 1
-        self.__add_suitable_chars(group_idx=idx, symbols=symbols)
-        self.__add_range_of_chars(group_idx=idx, borders=borders)
+        gn = group_name.upper()
+        for key, group in enumerate(self.__base):
+            if gn in group:
+                self.__add_suitable_chars(key, symbols)
+                self.__add_range_of_chars(key, borders)
+
+    def get_group(self, group_name: str) -> str | None:
+        for group in group_name:
+            if group_name in group:
+                return group
+        else:
+            return None
+
+    def get_pattern(self):
+        res = r'{}'.format(''.join(self.__base))
+        return res
+
+    def get_group_names(self):
+        return self.__base_names
 
     def delete_group(self, group_name: str) -> None:
-        delta_b, delta_f = 5, 7
-        if group_name == 'POS':
-            delta_b, delta_f = 6, 10
-        start = self.__base.find(group_name.upper()) - delta_b
-        end = start + len(group_name) + delta_f
-        self.__base = self.__base[:start] + self.__base[end:]
-        obg = self.__base_optional_groups
-        del obg[obg.index(group_name)]
-        self.__base_optional_groups = obg
+        gn = group_name.upper()
+        if gn not in ['BASE', 'RES']:
+            for group in self.__base:
+                if gn in group:
+                    del self.__base[self.__base.index(group)]
+                    del self.__base_names[self.__base_names.index(gn)]
+        else:
+            raise ValueError('Mistake. There is no such group in the pattern!')
 
     def delete_groups(self, group_names: list[str]) -> None:
         for group_name in group_names:
             self.delete_group(group_name)
 
-    def get_pattern(self):
-        return self.__base
-    
-    def get_base_optional_groups(self):
-        return self.__base_optional_groups
-    
-    def get_all_groups(self):
-        res = self.get_base_optional_groups()
-        res.extend(['BASE', 'RES'])
-        return res
+    def check_futility(self, group_name: str) -> bool:
+        group = self.get_group(group_name)
+        if '{' in group and '}' in group and '[' in group and ']' in group:
+            return True
+        return False
+
+    def check_existance(self, group_name: str) -> bool:
+        if self.get_group(group_name) is not None:
+            return True
+        return False
 
     def clear_changes(self):
-        self.__base = r'^(?P<RLN>)<(?P<BASE>)\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
-        self.__base_optional_groups = ['RLN', 'POS', 'RRN']
+        self.__base = [r'^(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)\]',
+                       r'>(?P<RRN>)', r'->(?P<RES>)$']
 
 
 def parse_rule(data: str, pattern=base_pattern) -> dict[str, str]:
@@ -142,10 +153,8 @@ def check_all_requirements(rule: str, state: str, idx: int) -> bool:
     return bool(pos_req * posibility)
 
 
-def generate_rule(pat):
-    return xeger(pat)
-
-
 if __name__ == '__main__':
     rl = RulePatternCreater()
-    print(rl.get_all_groups())
+    rl.add_group_info('base', 'ABC', IPair(1, 3))
+    rl.add_group_info('rln', 'FC', IPair(1, 2))
+    print(rl.get_pattern())

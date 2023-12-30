@@ -21,7 +21,7 @@ class BaseLSystem:
 
     def __post_init__(self) -> None:
         self.state = self.axiom
-        #self.rules.sort()
+        # self.rules.sort()
 
     def add_rule(self, new_rule: str) -> bool:
         if new_rule in self.rules:
@@ -32,7 +32,7 @@ class BaseLSystem:
             return False
         self.rules.append(new_rule)
         return True
-    
+
     def change_rules(self, new_rules: list[str]) -> bool:
         if self.rules == new_rules:
             return True
@@ -64,7 +64,7 @@ class BaseLSystem:
 
 @dataclass(init=True, frozen=False)
 class WMLLSystem(BaseLSystem):
-    leaf_symbol: str = '*'
+    leaf_symbol: str = field(init=True, default='*')
 
     def __post_init__(self):
         super().__post_init__()

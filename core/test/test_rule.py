@@ -107,7 +107,7 @@ class PatternCreaterTestCase(unittest.TestCase):
             self.r.clear_changes()
         with self.subTest():
             self.r.delete_group('rln')
-            pat = r'^(?P<BASE>)\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
+            pat = r'<(?P<BASE>)\[(?P<POS>)\]>(?P<RRN>)->(?P<RES>)$'
             self.assertEqual(pat, self.r.get_pattern())
             self.r.clear_changes()
 
