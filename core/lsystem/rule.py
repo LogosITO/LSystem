@@ -23,7 +23,7 @@ base_pattern: Final[str] = \
 
 
 class RulePatternCreater:
-    __base = [r'^(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)\]', r'>(?P<RRN>)', r'->(?P<RES>)$']
+    __base = [r'^(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(\d(\.|\,)(\d)+)\]', r'>(?P<RRN>)', r'->(?P<RES>)$']
     __base_names = ['RLN', 'BASE', 'POS', 'RRN', 'RES']
 
     def __add_suitable_chars(self, group_idx: int, symbols: str) -> None:
@@ -47,7 +47,7 @@ class RulePatternCreater:
                 self.__add_range_of_chars(key, borders)
 
     def get_group(self, group_name: str) -> str | None:
-        for group in group_name:
+        for group in self.__base:
             if group_name in group:
                 return group
         else:
@@ -76,7 +76,8 @@ class RulePatternCreater:
 
     def check_futility(self, group_name: str) -> bool:
         group = self.get_group(group_name)
-        if '{' in group and '}' in group and '[' in group and ']' in group:
+        if ('{' in group and '}' in group and '[' in group and ']' in group) or \
+            len(group) > 15:
             return True
         return False
 
@@ -86,7 +87,7 @@ class RulePatternCreater:
         return False
 
     def clear_changes(self):
-        self.__base = [r'^(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)\]',
+        self.__base = [r'^(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(\d(\.|\,)(\d)+)\]',
                        r'>(?P<RRN>)', r'->(?P<RES>)$']
 
 

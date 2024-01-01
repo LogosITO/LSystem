@@ -128,9 +128,9 @@ class Drawer:
 @function_time
 def main():
     win = ScreenHandler()
-    tree = WMLLSystem('XF', 60, {'F': 10, 'J': 4, 'X': 0},  # noqa: F405
-                      {'-': -28.5, '+': 28.5, '#': -10, '^': 10},
-                      ['X->X[JF+JX^F*][JF-JX#F*]', 'F->JFF'])
+    tree = WMLLSystem('XFX', 60, {'F': 10, 'G': 4, 'X': 0, 'Y': 12},  # noqa: F405
+                      {'-': -28.5, '+': 28.5, '#': -10, '@': 10},
+                      ['X[0.5]->XX[#YX@]GG', 'F->JFF'])
     tree.thickness = 4
     tree.generate(6)
     pen = Drawer(win, 'tree.png')

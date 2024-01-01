@@ -2,7 +2,7 @@ from rule import *
 from random import *
 from dataclasses import dataclass, field
 from string import ascii_uppercase
-from utils import IPair, generator_angle_symbols
+from utils import IPair, generator_angle_symbols, is_balanced
 from main import WMLLSystem
 from abc import ABC, abstractmethod
 from xeger import xeger
@@ -24,6 +24,10 @@ class RuleGenerator(ABC):
 
     @abstractmethod
     def generate_angles_symbols(self):
+        pass
+
+    @abstractmethod
+    def generate_rule(self):
         pass
 
 
@@ -78,7 +82,9 @@ class DefaultRuleGenerator(RuleGenerator):
 @dataclass(init=True, frozen=False)
 class ManualRuleGenerator(RuleGenerator):
     alphabet: str = field(init=True, default='FXYG')
-    angles_alpha: str = field(init=True, default='+@#=')
+    positive_angles_alpha: str = field(init=True, default='+#')
+    negative_angles_alpha: str = field(init=True, default='@=')
+    leaf_symbol: str = field(init=True, default='*')
     groups_to_delete: list[str] | None = field(init=True, default=None)
     deps_dict: dict[str, IPair | None] = field(init=True, default_factory=dict)
 
@@ -102,20 +108,38 @@ class ManualRuleGenerator(RuleGenerator):
     def expand_deps_dict(self, new_deps: dict[str, IPair]) -> None:
         self.deps_dict.update(new_deps)
 
-    def generate_alphabet_symbols(self) -> list[str]:
-        self.alphabet = self._generate_alpha_sym(ascii_uppercase, self.alpha_border)
+    def generate_alphabet_symbols(self, alpha_border: IPair=IPair(1, 3)) -> list[str]:
+        self.alphabet = self._generate_alpha_sym(ascii_uppercase, alpha_border)
         return self.alphabet
 
-    def generate_angles_symbols(self) -> list[str]:
-        self.angles_alpha = self._generate_alpha_sym(generator_angle_symbols, self.angles_border)
+    def generate_angles_symbols(self, angles_border: IPair=IPair(1, 3)) -> list[str]:
+        self.angles_alpha = self._generate_alpha_sym(generator_angle_symbols, angles_border)
         return self.angles_alpha
+
+    def __generate_result(self, result_len: int=4) -> str:
+        self.god.add_group_info('res', self.alphabet, IPair(1, result_len*2))
+        rnd_len = randint(1, 1) * 2
+        len_in_brackets =  result_len - rnd_len
+        res = ''.join(choices(self.alphabet, k=1)) + '[' + choice(self.positive_angles_alpha) + \
+            ''.join(sample(self.alphabet, len_in_brackets)) + \
+            choice(self.negative_angles_alpha) + ']' + ''.join(choices(self.alphabet, k=1))
+        return res
 
     def generate_rule(self):
         if self.groups_to_delete is not None:
             self.god.delete_groups(self.groups_to_delete)
         for key, value in self.deps_dict.items():
-            self.god.add_group_info(key, self.alphabet, value)
-        res = self.god.get_pattern(), xeger(self.god.get_pattern())
+            n_key = key.upper()
+            if not self.god.check_futility(n_key) and n_key != 'RES':
+                self.god.add_group_info(n_key, self.alphabet, value)
+            else:
+                continue
+        res = self.god.get_pattern(), None
+        if is_balanced(self.god.get_pattern()):
+            res = self.god.get_pattern(), xeger(self.god.get_pattern())
+        else:
+            raise UnboundLocalError
+        res = res[1].split('->')[0] + '->' + self.__generate_result()
         self.god.clear_changes()
         return res
 
@@ -126,7 +150,7 @@ class LSystemGenerator:
     alpha_values_borders: IPair = field(init=True, default=IPair(0, 10))
     rules_number_borders: IPair = field(init=True, default=IPair(1, 3))
     axiom_len_borders: IPair = field(init=True, default=IPair(1, 2))
-    RG: DefaultRuleGenerator = field(init=False, default_factory=DefaultRuleGenerator)
+    RG: RuleGenerator = field(init=False, default_factory=DefaultRuleGenerator)
     __result: WMLLSystem = field(init=False, default_factory=WMLLSystem)
 
     def __generate_alphabet(self) -> dict[str, int]:
@@ -160,6 +184,13 @@ class LSystemGenerator:
         self.__result.axiom = ''.join(res)[randint(0, len(res) - 1)]
         self.__result.state = self.__result.axiom
         return res
+    
+    def set_generator(self, new_RG: RuleGenerator) -> bool:
+        try:
+            self.RG = new_RG
+        except:
+            return False
+        return True
 
     def out(self):
         self.__generate_all_rules()
@@ -171,5 +202,9 @@ class LSystemGenerator:
 
 if __name__ == '__main__':
     MRG = ManualRuleGenerator()
-    MRG.expand_deps_dict({'RRN': IPair(1, 1), 'RLN': IPair(2, 2)})
-    print(MRG.generate_rule()[1])
+    MRG.expand_deps_dict({'RRN': IPair(1, 1), 'RLN': IPair(1, 1)})
+    print(MRG.deps_dict)
+    print(MRG.generate_rule())
+    LG = LSystemGenerator()
+    LG.set_generator(MRG)
+    print(LG.out().rules)
