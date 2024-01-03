@@ -4,6 +4,7 @@ from math import sin, cos, radians
 from dataclasses import dataclass, field
 from main import BaseLSystem, WMLLSystem
 from utils import get_memory_usage, function_time
+from drawing_presets import *
 from enum import Enum
 from typing import Final
 
@@ -25,10 +26,11 @@ image_formats: Final[list[str]] = ['BMP', 'PNG', 'JPEG', 'TGA']
 
 @dataclass(init=True, frozen=False)
 class ScreenHandler:
-    bg_color: tuple[int] = field(init=True, default=(255, 255, 255, 0))
+    bg_color: tuple[int] = field(init=True, default=(255, 255, 255))
+    transparency: tuple[int] = field(init=True, default=(220, 220))
     image_size: tuple[int, int] = field(init=True, default=(1600, 900))
     image_format: str = field(init=True, default='PNG')
-    img: ImageDraw = field(init=False)
+    img: Image = field(init=False)
     pen: ImageDraw.Draw = field(init=False)
 
     def __post_init__(self):
@@ -39,16 +41,16 @@ class ScreenHandler:
             self.format='PNG'
 
     def create_screen(self) -> ImageDraw.Draw:
-        self.img = Image.new('RGB', self.image_size, self.bg_color)
+        self.img = Image.new('RGBA', self.image_size, self.bg_color)
         self.pen = ImageDraw.Draw(self.img)
         return self.pen
 
-    def end_work(self, filename: str, show_state: bool = True):
+    def end_work(self, filename: str, show_state: bool = True) -> None:
         if show_state:
             self.img.show()
-        self.img.save(filename+'.'+self.image_format)
+        self.img.save(filename+'.'+self.image_format.lower())
 
-    def show(self):
+    def show(self) -> None:
         self.img.show()
 
 
@@ -57,6 +59,7 @@ class Drawer:
     screen: ScreenHandler = field(init=True, default_factory=ScreenHandler)
     filename: str = field(init=True, default="tree")
     thickness_reduction: float = field(init=True, default=1)  # from 0 to 1
+    leaf_drawing_function: callable = field(init=True, default=draw_real_leaf)
     lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
     pre_show: bool = True
 
@@ -69,9 +72,8 @@ class Drawer:
     def extend_lsystems(self, lsystems: list[WMLLSystem]) -> None:
         self.lsystems.extend(lsystems)
 
-    def draw_leaf(self, img_pen: ImageDraw.Draw, coords: list[float]):
-        img_pen.ellipse((coords[0], coords[1], coords[0] + 15,
-                        coords[1] + 20), fill='green', outline=(0, 0, 0))
+    def draw_leaf(self, img: Image, img_pen: ImageDraw.Draw, coords: list[float]) -> None:
+        self.leaf_drawing_function(img, img_pen, coords)
 
     def draw_step(self, img_pen: ImageDraw.Draw, step: str, crd: list[float],
                   angle: float, ls: WMLLSystem | BaseLSystem) -> list[float]:
@@ -84,6 +86,7 @@ class Drawer:
     def draw_tree(self, base_coords: list[float],
                   lsystem: WMLLSystem | BaseLSystem,
                   with_end: FinalState = FinalState.Default) -> None:
+        image = self.screen.img
         draw = self.screen.pen
         coords, angle = base_coords, 0
         saved_coords, saved_angles = [], []
@@ -101,7 +104,7 @@ class Drawer:
                     pass
             try:
                 if step == lsystem.leaf_symbol:
-                    self.draw_leaf(draw, coords)
+                    self.draw_leaf(image, draw, coords)
             except AttributeError:
                 pass
             if step in lsystem.alphabet:
@@ -111,7 +114,7 @@ class Drawer:
 
         self.final_catcher(self.filename, with_end)
 
-    def final_catcher(self, filename: str, with_end: FinalState):
+    def final_catcher(self, filename: str, with_end: FinalState) -> None:
         match with_end:
             case FinalState.Saving:
                 self.screen.end_work(self.filename, False)
@@ -137,13 +140,13 @@ class Drawer:
 
 @function_time
 def main():
-    win = ScreenHandler()
+    win = ScreenHandler(transparency=(1, 1))
     tree = WMLLSystem('XFX', 60, {'F': 10, 'G': 4, 'X': 0, 'Y': 12},  # noqa: F405
                       {'-': -28.5, '+': 28.5, '#': -10, '@': 10},
-                      ['X[0.5]->XX[#YX@]GG', 'F->JFF'])
+                      ['X->F[+FX*-XFF*+GF*]F', 'F->GF'])
     tree.thickness = 4
     tree.generate(6)
-    pen = Drawer(win, 'tree.png')
+    pen = Drawer(win, 'tree.png', leaf_drawing_function=draw_canadian_leaf)
     pen.append_lsystem(tree)
     pen.draw_saved_tree([350, 900], 0)
     print(get_memory_usage())
