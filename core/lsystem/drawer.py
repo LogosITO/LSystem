@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from main import BaseLSystem, WMLLSystem
 from utils import get_memory_usage, function_time
 from enum import Enum
+from typing import Final
 
 
 def get_new_coords(coordx: float, coordy: float,
@@ -20,13 +21,22 @@ class FinalState(Enum):
     Showing = 2
     Default = 3
 
+image_formats: Final[list[str]] = ['BMP', 'PNG', 'JPEG', 'TGA']
 
 @dataclass(init=True, frozen=False)
 class ScreenHandler:
     bg_color: tuple[int] = field(init=True, default=(255, 255, 255, 0))
     image_size: tuple[int, int] = field(init=True, default=(1600, 900))
+    image_format: str = field(init=True, default='PNG')
     img: ImageDraw = field(init=False)
     pen: ImageDraw.Draw = field(init=False)
+
+    def __post_init__(self):
+        try:
+            idx = image_formats.index(self.image_format.upper())
+            self.format = image_formats[idx]
+        except:
+            self.format='PNG'
 
     def create_screen(self) -> ImageDraw.Draw:
         self.img = Image.new('RGB', self.image_size, self.bg_color)
@@ -36,7 +46,7 @@ class ScreenHandler:
     def end_work(self, filename: str, show_state: bool = True):
         if show_state:
             self.img.show()
-        self.img.save(filename, "PNG")
+        self.img.save(filename+'.'+self.image_format)
 
     def show(self):
         self.img.show()

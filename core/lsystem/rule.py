@@ -11,7 +11,7 @@ from string import punctuation
 
 base = r'(?P<Base>[A-Za-z + - ( )]+)'
 par = r'\((?P<Parameters>[^,\)]+(?:, [^,\)]*)*)\)'
-pos = r'(?P<Possibility>(\d(\.|\,)(\d)+))'
+pos = r'(?P<Possibility>(\d(\.)(\d)+))'
 res = fr'(?P<Result>[A-Za-z {punctuation} \W]+)'
 rpar = r'\((?P<ResultParameters>[^,\)]+(?:, [^,\)]*)*)\)'
 rrn = r'(?P<RequiredRightNeighbour>(!?[A-Za-z + -]+))'
@@ -23,7 +23,7 @@ base_pattern: Final[str] = \
 
 
 class RulePatternCreater:
-    __base = [r'^(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(\d(\.|\,)(\d)+)\]', r'>(?P<RRN>)', r'->(?P<RES>)$']
+    __base = [r'^', r'(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(\d(\.)(\d)+)\]', r'>(?P<RRN>)', r'->(?P<RES>)', r'$']
     __base_names = ['RLN', 'BASE', 'POS', 'RRN', 'RES']
 
     def __add_suitable_chars(self, group_idx: int, symbols: str) -> None:
@@ -66,16 +66,19 @@ class RulePatternCreater:
             for group in self.__base:
                 if gn in group:
                     del self.__base[self.__base.index(group)]
-                    del self.__base_names[self.__base_names.index(gn)]
+                    #del self.__base_names[self.__base_names.index(gn)]
+                    print(self.get_pattern())
         else:
             raise ValueError('Mistake. There is no such group in the pattern!')
 
     def delete_groups(self, group_names: list[str]) -> None:
         for group_name in group_names:
-            self.delete_group(group_name)
+            self.delete_group(group_name.upper())
 
     def check_futility(self, group_name: str) -> bool:
         group = self.get_group(group_name)
+        if group is None:
+            return False
         if ('{' in group and '}' in group and '[' in group and ']' in group) or \
             len(group) > 15:
             return True
@@ -87,8 +90,8 @@ class RulePatternCreater:
         return False
 
     def clear_changes(self):
-        self.__base = [r'^(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(\d(\.|\,)(\d)+)\]',
-                       r'>(?P<RRN>)', r'->(?P<RES>)$']
+        self.__base = [r'^', r'(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(\d(\.)(\d)+)\]',
+                       r'>(?P<RRN>)', r'->(?P<RES>)', r'$']
 
 
 def parse_rule(data: str, pattern=base_pattern) -> dict[str, str]:

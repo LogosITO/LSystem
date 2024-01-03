@@ -108,20 +108,18 @@ class ManualRuleGenerator(RuleGenerator):
     def expand_deps_dict(self, new_deps: dict[str, IPair]) -> None:
         self.deps_dict.update(new_deps)
 
-    def generate_alphabet_symbols(self, alpha_border: IPair=IPair(1, 3)) -> list[str]:
-        self.alphabet = self._generate_alpha_sym(ascii_uppercase, alpha_border)
+    def generate_alphabet_symbols(self) -> list[str]:
         return self.alphabet
 
-    def generate_angles_symbols(self, angles_border: IPair=IPair(1, 3)) -> list[str]:
-        self.angles_alpha = self._generate_alpha_sym(generator_angle_symbols, angles_border)
-        return self.angles_alpha
+    def generate_angles_symbols(self) -> list[str]:
+        return self.positive_angles_alpha + self.negative_angles_alpha
 
     def __generate_result(self, result_len: int=4) -> str:
         self.god.add_group_info('res', self.alphabet, IPair(1, result_len*2))
         rnd_len = randint(1, 1) * 2
         len_in_brackets =  result_len - rnd_len
         res = ''.join(choices(self.alphabet, k=1)) + '[' + choice(self.positive_angles_alpha) + \
-            ''.join(sample(self.alphabet, len_in_brackets)) + \
+            ''.join(sample(self.alphabet, len_in_brackets)) + self.leaf_symbol + \
             choice(self.negative_angles_alpha) + ']' + ''.join(choices(self.alphabet, k=1))
         return res
 
@@ -130,7 +128,7 @@ class ManualRuleGenerator(RuleGenerator):
             self.god.delete_groups(self.groups_to_delete)
         for key, value in self.deps_dict.items():
             n_key = key.upper()
-            if not self.god.check_futility(n_key) and n_key != 'RES':
+            if not self.god.check_futility(n_key) and n_key != 'RES' and n_key != 'POS':
                 self.god.add_group_info(n_key, self.alphabet, value)
             else:
                 continue
