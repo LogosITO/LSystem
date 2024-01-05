@@ -100,18 +100,23 @@ class StateHandler:
         self.result = self.pre_result
     
     def __beautifier(self) -> None:
-        dels = []
+        prs = []
         for idx, seq in enumerate(self.pre_result):
             el = seq[0]
             if el == '[':
                 while el != ']':
                     seqf = self.result[idx]
                     el = seqf[0]
-                    dels.append(seqf)
                     idx += 1
-            elif seq[0] not in ascii_letters:
-                dels.append(seq)
-        self.result = [''.join([el + '|' for el in x if x not in dels ]) if x not in dels else x for x in self.result]
+            elif seq[0] in ascii_letters:
+                prs.append(idx)
+        for i in range(len(self.result)):
+            if i in prs:
+                new_seq = ''
+                for el in self.result[i]:
+                    new_seq = new_seq + el + '|'
+                else:
+                    self.result[i] = new_seq
     
     def __linker(self) -> None:
         return ''.join(self.result)
@@ -122,8 +127,3 @@ class StateHandler:
         res = self.__linker()
         return res
                 
-
-if __name__ == '__main__':
-    state = 'F[+XFF-]GG'
-    SH = StateHandler(state)
-    print(SH.out())

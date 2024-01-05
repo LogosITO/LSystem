@@ -22,7 +22,9 @@ class FinalState(Enum):
     Showing = 2
     Default = 3
 
+
 image_formats: Final[list[str]] = ['BMP', 'PNG', 'JPEG', 'TGA']
+
 
 @dataclass(init=True, frozen=False)
 class ScreenHandler:
@@ -85,7 +87,7 @@ class Drawer:
         self.leaf_drawing_function(img, img_pen, coords)
 
     def draw_step(self, img_pen: ImageDraw.Draw, step: str, crd: list[float],
-                  angle: float, ls: WMLLSystem | BaseLSystem, th_ml: int=1) -> list[float]:
+                  angle: float, ls: WMLLSystem | BaseLSystem, th_ml: float=1) -> list[float]:
         newcoords = get_new_coords(crd[0], crd[1],
                                    angle, ls.alphabet[step])
         img_pen.line((crd[0], crd[1], newcoords[0], newcoords[1]),
@@ -123,7 +125,7 @@ class Drawer:
                     next_step = 'end'
                 th_ml = 1
                 if next_step == '|':
-                    th_ml = 2
+                    th_ml = 1.5
                 coords = self.draw_step(draw, step, coords, angle, lsystem, th_ml)
             elif step in lsystem.angles:
                 angle += lsystem.angles[step]
