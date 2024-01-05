@@ -1,11 +1,12 @@
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
-
+from typing import Optional
 from dataclasses import dataclass, field
 from rule import (parse_rule,
                   check_all_requirements,
                   get_rules_with_base)
+from string import ascii_letters
 
 
 @dataclass(init=True, frozen=False)
@@ -71,3 +72,58 @@ class WMLLSystem(BaseLSystem):
 
     def add_rule(self, new_rule: str) -> bool:
         return super().add_rule(new_rule)
+
+
+@dataclass(init=True, frozen=False)
+class StateHandler:
+    state: Optional[str] = field(init=True, default=None)
+    pre_result: list[str] = field(init=True, default_factory=list)
+    result: list[str] = field(init=False, default_factory=list)
+
+    def __post_init__(self):
+        if self.state is None:
+            raise ValueError("You hadn't pushed state in your StateHandler!")
+    
+    def __break(self) -> None:
+        sequences = []
+        msq = self.state[0]
+        for idx in range(1, len(self.state)):
+            el = self.state[idx]
+            if el in msq:
+                msq += el
+            else:
+                sequences.append(msq)
+                msq = el
+        else:
+            sequences.append(msq)
+        self.pre_result = sequences
+        self.result = self.pre_result
+    
+    def __beautifier(self) -> None:
+        dels = []
+        for idx, seq in enumerate(self.pre_result):
+            el = seq[0]
+            if el == '[':
+                while el != ']':
+                    seqf = self.result[idx]
+                    el = seqf[0]
+                    dels.append(seqf)
+                    idx += 1
+            elif seq[0] not in ascii_letters:
+                dels.append(seq)
+        self.result = [''.join([el + '|' for el in x if x not in dels ]) if x not in dels else x for x in self.result]
+    
+    def __linker(self) -> None:
+        return ''.join(self.result)
+
+    def out(self):
+        self.__break()
+        self.__beautifier()
+        res = self.__linker()
+        return res
+                
+
+if __name__ == '__main__':
+    state = 'F[+XFF-]GG'
+    SH = StateHandler(state)
+    print(SH.out())

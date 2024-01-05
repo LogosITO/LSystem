@@ -10,7 +10,7 @@ from core.lsystem import rule
 from core.lsystem import drawing_presets
 
 if __name__ == '__main__':
-    win = drawer.ScreenHandler((200, 200, 200, 0), (100, 100), (1600, 900), 'PNG')
+    win = drawer.ScreenHandler((200, 200, 200, 0), (1, 1), (1600, 900), 'PNG')
     pen = drawer.Drawer(win, "random_tree")
 
     MRG = generator.ManualRuleGenerator()

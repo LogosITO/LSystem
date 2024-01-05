@@ -2,7 +2,7 @@ from PIL import Image
 from PIL import ImageDraw
 from math import sin, cos, radians
 from dataclasses import dataclass, field
-from main import BaseLSystem, WMLLSystem
+from main import BaseLSystem, WMLLSystem, StateHandler
 from utils import get_memory_usage, function_time
 from drawing_presets import *
 from enum import Enum
@@ -31,6 +31,7 @@ class ScreenHandler:
     image_size: tuple[int, int] = field(init=True, default=(1600, 900))
     image_format: str = field(init=True, default='PNG')
     img: Image = field(init=False)
+    bg_img: Image = field(init=False, default=None)
     pen: ImageDraw.Draw = field(init=False)
 
     def __post_init__(self):
@@ -40,8 +41,15 @@ class ScreenHandler:
         except:
             self.format='PNG'
 
+    def set_bg_image(self, path_string: str) -> bool:
+        self.bg_img = Image.open(path_string).convert('RGBA')
+        self.bg_img = self.bg_img.resize(self.image_size)
+
+
     def create_screen(self) -> ImageDraw.Draw:
         self.img = Image.new('RGBA', self.image_size, self.bg_color)
+        if self.bg_img is not None:
+            self.img.paste(self.bg_img, None, self.bg_img)
         self.pen = ImageDraw.Draw(self.img)
         return self.pen
 
@@ -59,6 +67,7 @@ class Drawer:
     screen: ScreenHandler = field(init=True, default_factory=ScreenHandler)
     filename: str = field(init=True, default="tree")
     thickness_reduction: float = field(init=True, default=1)  # from 0 to 1
+    fg_color: tuple[int] = field(init=True, default=(101, 67, 33))
     leaf_drawing_function: callable = field(init=True, default=draw_real_leaf)
     lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
     pre_show: bool = True
@@ -76,11 +85,11 @@ class Drawer:
         self.leaf_drawing_function(img, img_pen, coords)
 
     def draw_step(self, img_pen: ImageDraw.Draw, step: str, crd: list[float],
-                  angle: float, ls: WMLLSystem | BaseLSystem) -> list[float]:
+                  angle: float, ls: WMLLSystem | BaseLSystem, th_ml: int=1) -> list[float]:
         newcoords = get_new_coords(crd[0], crd[1],
                                    angle, ls.alphabet[step])
         img_pen.line((crd[0], crd[1], newcoords[0], newcoords[1]),
-                     width=ls.thickness, fill='black')
+                     width=int(ls.thickness * th_ml), fill=self.fg_color)
         return newcoords
 
     def draw_tree(self, base_coords: list[float],
@@ -91,7 +100,7 @@ class Drawer:
         coords, angle = base_coords, 0
         saved_coords, saved_angles = [], []
 
-        for step in lsystem.state:
+        for idx, step in enumerate(lsystem.state):
             lsystem.thickness = (self.thickness_reduction * lsystem.thickness)
             if step == '[':
                 saved_coords.append(coords)
@@ -108,7 +117,14 @@ class Drawer:
             except AttributeError:
                 pass
             if step in lsystem.alphabet:
-                coords = self.draw_step(draw, step, coords, angle, lsystem)
+                try: 
+                    next_step = lsystem.state[idx + 1]
+                except IndexError: 
+                    next_step = 'end'
+                th_ml = 1
+                if next_step == '|':
+                    th_ml = 2
+                coords = self.draw_step(draw, step, coords, angle, lsystem, th_ml)
             elif step in lsystem.angles:
                 angle += lsystem.angles[step]
 
@@ -141,14 +157,19 @@ class Drawer:
 @function_time
 def main():
     win = ScreenHandler(transparency=(1, 1))
+    win.set_bg_image(r'LSystem\assets\images\background-field.png')
     tree = WMLLSystem('XFX', 60, {'F': 10, 'G': 4, 'X': 0, 'Y': 12},  # noqa: F405
                       {'-': -28.5, '+': 28.5, '#': -10, '@': 10},
                       ['X->F[+FX*-XFF*+GF*]F', 'F->GF'])
-    tree.thickness = 4
+    tree.thickness = 8
     tree.generate(6)
-    pen = Drawer(win, 'tree.png', leaf_drawing_function=draw_canadian_leaf)
+    SH = StateHandler(tree.state)
+    tree.state = SH.out()
+    print(tree.state)
+    pen = Drawer(win, 'tree', leaf_drawing_function=draw_canadian_leaf)
+    pen.thickness_reduction = 0.9997
     pen.append_lsystem(tree)
-    pen.draw_saved_tree([350, 900], 0)
+    pen.draw_saved_tree([450, 600], 0)
     print(get_memory_usage())
 
 
