@@ -3,4 +3,6 @@ __all__ = [
     'rule.py'
     'utils.py'
     'drawer.py'
+    'generator.py'
+    'drawing_presets'
 ]

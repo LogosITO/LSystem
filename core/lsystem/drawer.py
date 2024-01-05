@@ -159,7 +159,7 @@ class Drawer:
 @function_time
 def main():
     win = ScreenHandler(transparency=(1, 1))
-    win.set_bg_image(r'LSystem\assets\images\background-field.png')
+    win.set_bg_image(r'LSystem\LSystem\assets\images\background-field.png')
     tree = WMLLSystem('XFX', 60, {'F': 10, 'G': 4, 'X': 0, 'Y': 12},  # noqa: F405
                       {'-': -28.5, '+': 28.5, '#': -10, '@': 10},
                       ['X->F[+FX*-XFF*+GF*]F', 'F->GF'])

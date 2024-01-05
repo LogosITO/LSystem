@@ -12,7 +12,6 @@ data = ['J[0.5]->JJ', 'A<F[0.5]->FF',
 
 
 grwb = lambda val: rule.get_rules_with_base(val, data)
-grwb = lambda val: rule.get_rules_with_base(val, data)
 gfrwb = lambda val: rule.get_first_rule_with_base(val, data)
 
 
