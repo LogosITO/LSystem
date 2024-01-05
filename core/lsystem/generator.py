@@ -114,10 +114,10 @@ class ManualRuleGenerator(RuleGenerator):
     def generate_angles_symbols(self) -> list[str]:
         return self.positive_angles_alpha + self.negative_angles_alpha
 
-    def __generate_result(self, result_len: int=4) -> str:
+    def __generate_result(self, result_len: int = 4) -> str:
         self.god.add_group_info('res', self.alphabet, IPair(1, result_len*2))
         rnd_len = randint(1, 1) * 2
-        len_in_brackets =  result_len - rnd_len
+        len_in_brackets = result_len - rnd_len
         res = ''.join(choices(self.alphabet, k=1)) + '[' + choice(self.positive_angles_alpha) + \
             ''.join(sample(self.alphabet, len_in_brackets)) + self.leaf_symbol + \
             choice(self.negative_angles_alpha) + ']' + ''.join(choices(self.alphabet, k=1))
@@ -147,7 +147,7 @@ class LSystemGenerator:
     angles_values_borders: IPair = field(init=True, default=IPair(-120, 120))
     alpha_values_borders: IPair = field(init=True, default=IPair(0, 10))
     rules_number_borders: IPair = field(init=True, default=IPair(1, 3))
-    axiom_len_borders: IPair = field(init=True, default=IPair(1, 2))
+    axiom_len_borders: IPair = field(init=True, default=IPair(2, 3))
     RG: RuleGenerator = field(init=False, default_factory=DefaultRuleGenerator)
     __result: WMLLSystem = field(init=False, default_factory=WMLLSystem)
 
@@ -173,16 +173,25 @@ class LSystemGenerator:
         res = []
         for _ in range(number):
             gg = self.RG.generate_rule()
+            if base not in self.__result.axiom:
+                change_rule(gg, 'BASE', choice(self.__result.axiom))
             res.append(gg)
+        sym = choice(self.__result.axiom)
+        res.append(f'{sym}->{sym}{sym}')
         self.__result.change_rules(res)
         return res
 
     def __generate_axiom(self) -> str:
-        res = self.__result.alphabet.keys()
-        self.__result.axiom = ''.join(res)[randint(0, len(res) - 1)]
+        f, s = self.axiom_len_borders.first, self.axiom_len_borders.second
+        ax_len = randint(f, s)
+        res = list(self.__result.alphabet.keys())
+        if len(res) <= ax_len:
+            self.__result.axiom = ''.join(res)[randint(0, len(res) - 1)]
+        else:
+            self.__result.axiom = ''.join(sample(res, k=ax_len))
         self.__result.state = self.__result.axiom
         return res
-    
+
     def set_generator(self, new_RG: RuleGenerator) -> bool:
         try:
             self.RG = new_RG
@@ -191,10 +200,10 @@ class LSystemGenerator:
         return True
 
     def out(self):
-        self.__generate_all_rules()
         self.__generate_alphabet()
         self.__generate_angles()
         self.__generate_axiom()
+        self.__generate_all_rules()
         return self.__result
 
 

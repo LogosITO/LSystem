@@ -11,7 +11,7 @@ from string import punctuation
 
 base = r'(?P<Base>[A-Za-z + - ( )]+)'
 par = r'\((?P<Parameters>[^,\)]+(?:, [^,\)]*)*)\)'
-pos = r'(?P<Possibility>(\d(\.)(\d)+))'
+pos = r'(?P<Possibility>(0(\.)(\d)+))'
 res = fr'(?P<Result>[A-Za-z {punctuation} \W]+)'
 rpar = r'\((?P<ResultParameters>[^,\)]+(?:, [^,\)]*)*)\)'
 rrn = r'(?P<RequiredRightNeighbour>(!?[A-Za-z + -]+))'
@@ -23,7 +23,8 @@ base_pattern: Final[str] = \
 
 
 class RulePatternCreater:
-    __base = [r'^', r'(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(\d(\.)(\d)+)\]', r'>(?P<RRN>)', r'->(?P<RES>)', r'$']
+    __base = [r'^', r'(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(0(\.)(\d)+)\]',
+              r'>(?P<RRN>)', r'->(?P<RES>)', r'$']
     __base_names = ['RLN', 'BASE', 'POS', 'RRN', 'RES']
 
     def __add_suitable_chars(self, group_idx: int, symbols: str) -> None:
@@ -66,7 +67,6 @@ class RulePatternCreater:
             for group in self.__base:
                 if gn in group:
                     del self.__base[self.__base.index(group)]
-                    #del self.__base_names[self.__base_names.index(gn)]
                     print(self.get_pattern())
         else:
             raise ValueError('Mistake. There is no such group in the pattern!')
@@ -79,8 +79,7 @@ class RulePatternCreater:
         group = self.get_group(group_name)
         if group is None:
             return False
-        if ('{' in group and '}' in group and '[' in group and ']' in group) or \
-            len(group) > 15:
+        if ('{' in group and '}' in group and '[' in group and ']' in group) or len(group) > 15:
             return True
         return False
 
@@ -90,7 +89,7 @@ class RulePatternCreater:
         return False
 
     def clear_changes(self):
-        self.__base = [r'^', r'(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(\d(\.)(\d)+)\]',
+        self.__base = [r'^', r'(?P<RLN>)<', r'(?P<BASE>)', r'\[(?P<POS>)(0(\.)(\d)+)\]',
                        r'>(?P<RRN>)', r'->(?P<RES>)', r'$']
 
 
@@ -100,6 +99,16 @@ def parse_rule(data: str, pattern=base_pattern) -> dict[str, str]:
     if m is None:
         raise TypeError('The rule does not match the given pattern!')
     return m.groupdict()
+
+
+def change_rule(data: str, group_name: str, new_data: str) -> str:
+    res = ''
+    for group, g_data in parse_rule(data).items():
+        if group == group_name:
+            res += new_data
+        if g_data is not None:
+            res += group
+    return res
 
 
 def get_first_rule_with_base(base: str, rules: list[str]) -> Optional[str]:

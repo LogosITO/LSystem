@@ -30,7 +30,7 @@ image_formats: Final[list[str]] = ['BMP', 'PNG', 'JPEG', 'TGA']
 class ScreenHandler:
     bg_color: tuple[int] = field(init=True, default=(255, 255, 255))
     transparency: tuple[int] = field(init=True, default=(220, 220))
-    image_size: tuple[int, int] = field(init=True, default=(1600, 900))
+    image_size: tuple[int] = field(init=True, default=(1600, 900))
     image_format: str = field(init=True, default='PNG')
     img: Image = field(init=False)
     bg_img: Image = field(init=False, default=None)
@@ -41,12 +41,11 @@ class ScreenHandler:
             idx = image_formats.index(self.image_format.upper())
             self.format = image_formats[idx]
         except:
-            self.format='PNG'
+            self.format = 'PNG'
 
     def set_bg_image(self, path_string: str) -> bool:
         self.bg_img = Image.open(path_string).convert('RGBA')
         self.bg_img = self.bg_img.resize(self.image_size)
-
 
     def create_screen(self) -> ImageDraw.Draw:
         self.img = Image.new('RGBA', self.image_size, self.bg_color)
@@ -83,13 +82,13 @@ class Drawer:
     def extend_lsystems(self, lsystems: list[WMLLSystem]) -> None:
         self.lsystems.extend(lsystems)
 
-    def draw_leaf(self, img: Image, img_pen: ImageDraw.Draw, coords: list[float]) -> None:
-        self.leaf_drawing_function(img, img_pen, coords)
+    def draw_leaf(self, img: Image, img_pen: ImageDraw.Draw,
+                  coords: list[float], screen_size: tuple[int]) -> None:
+        self.leaf_drawing_function(img, img_pen, coords, screen_size)
 
     def draw_step(self, img_pen: ImageDraw.Draw, step: str, crd: list[float],
-                  angle: float, ls: WMLLSystem | BaseLSystem, th_ml: float=1) -> list[float]:
-        newcoords = get_new_coords(crd[0], crd[1],
-                                   angle, ls.alphabet[step])
+                  angle: float, ls: WMLLSystem | BaseLSystem, th_ml: float = 1) -> list[float]:
+        newcoords = get_new_coords(crd[0], crd[1], angle, ls.alphabet[step])
         img_pen.line((crd[0], crd[1], newcoords[0], newcoords[1]),
                      width=int(ls.thickness * th_ml), fill=self.fg_color)
         return newcoords
@@ -97,6 +96,7 @@ class Drawer:
     def draw_tree(self, base_coords: list[float],
                   lsystem: WMLLSystem | BaseLSystem,
                   with_end: FinalState = FinalState.Default) -> None:
+        lsystem.state = StateHandler(lsystem.state).out()
         image = self.screen.img
         draw = self.screen.pen
         coords, angle = base_coords, 0
@@ -115,17 +115,17 @@ class Drawer:
                     pass
             try:
                 if step == lsystem.leaf_symbol:
-                    self.draw_leaf(image, draw, coords)
+                    self.draw_leaf(image, draw, coords, self.screen.image_size)
             except AttributeError:
                 pass
             if step in lsystem.alphabet:
-                try: 
+                try:
                     next_step = lsystem.state[idx + 1]
-                except IndexError: 
+                except IndexError:
                     next_step = 'end'
                 th_ml = 1
                 if next_step == '|':
-                    th_ml = 1.5
+                    th_ml = 1.65
                 coords = self.draw_step(draw, step, coords, angle, lsystem, th_ml)
             elif step in lsystem.angles:
                 angle += lsystem.angles[step]
@@ -165,9 +165,6 @@ def main():
                       ['X->F[+FX*-XFF*+GF*]F', 'F->GF'])
     tree.thickness = 8
     tree.generate(6)
-    SH = StateHandler(tree.state)
-    tree.state = SH.out()
-    print(tree.state)
     pen = Drawer(win, 'tree', leaf_drawing_function=draw_canadian_leaf)
     pen.thickness_reduction = 0.9997
     pen.append_lsystem(tree)

@@ -77,13 +77,13 @@ class WMLLSystem(BaseLSystem):
 @dataclass(init=True, frozen=False)
 class StateHandler:
     state: Optional[str] = field(init=True, default=None)
-    pre_result: list[str] = field(init=True, default_factory=list)
+    pre_result: list[str] = field(init=False, default_factory=list)
     result: list[str] = field(init=False, default_factory=list)
 
     def __post_init__(self):
         if self.state is None:
             raise ValueError("You hadn't pushed state in your StateHandler!")
-    
+
     def __break(self) -> None:
         sequences = []
         msq = self.state[0]
@@ -98,7 +98,7 @@ class StateHandler:
             sequences.append(msq)
         self.pre_result = sequences
         self.result = self.pre_result
-    
+
     def __beautifier(self) -> None:
         prs = []
         for idx, seq in enumerate(self.pre_result):
@@ -117,7 +117,7 @@ class StateHandler:
                     new_seq = new_seq + el + '|'
                 else:
                     self.result[i] = new_seq
-    
+
     def __linker(self) -> None:
         return ''.join(self.result)
 
@@ -126,4 +126,3 @@ class StateHandler:
         self.__beautifier()
         res = self.__linker()
         return res
-                
