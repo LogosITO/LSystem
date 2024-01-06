@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 import unittest
-from lsystem import main as ls  # type: ignore # noqa: E402
+from lsystem import main as ls
 
 
 class BaseLSystemTestCase(unittest.TestCase):
