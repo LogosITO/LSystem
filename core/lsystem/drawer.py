@@ -6,7 +6,8 @@ from main import BaseLSystem, WMLLSystem, StateHandler
 from utils import get_memory_usage, function_time
 from drawing_presets import *
 from enum import Enum
-from typing import Final
+from typing import Final, Optional
+from threading import Thread
 
 
 def get_new_coords(coordx: float, coordy: float,
@@ -69,7 +70,7 @@ class Drawer:
     filename: str = field(init=True, default="tree")
     thickness_reduction: float = field(init=True, default=1)  # from 0 to 1
     fg_color: tuple[int] = field(init=True, default=(101, 67, 33))
-    leaf_drawing_function: callable = field(init=True, default=draw_real_leaf)
+    leaf_name: Optional[str] = field(init=True, default='example-leaf')
     lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
     pre_show: bool = True
 
@@ -84,7 +85,10 @@ class Drawer:
 
     def draw_leaf(self, img: Image, img_pen: ImageDraw.Draw,
                   coords: list[float], screen_size: tuple[int]) -> None:
-        self.leaf_drawing_function(img, img_pen, coords, screen_size)
+        if self.leaf_name is not None:
+            draw_uploaded_leaf(img, img_pen, coords, screen_size, name=self.leaf_name)
+        else:
+            draw_ellipse_leaf(img, img_pen, coords, screen_size)
 
     def draw_step(self, img_pen: ImageDraw.Draw, step: str, crd: list[float],
                   angle: float, ls: WMLLSystem | BaseLSystem, th_ml: float = 1) -> list[float]:
@@ -156,19 +160,23 @@ class Drawer:
             raise IndexError("Can't math base_coords with lsystems")
 
 
-@function_time
-def main():
-    win = ScreenHandler(transparency=(1, 1))
-    win.set_bg_image(r'LSystem\LSystem\assets\images\background-field.png')
-    tree = WMLLSystem('XFX', 60, {'F': 10, 'G': 4, 'X': 0, 'Y': 12},  # noqa: F405
-                      {'-': -28.5, '+': 28.5, '#': -10, '@': 10},
-                      ['X->F[+FX*-XFF*+GF*]F', 'F->GF'])
-    tree.thickness = 8
-    tree.generate(6)
-    pen = Drawer(win, 'tree', leaf_drawing_function=draw_canadian_leaf)
+def start(win: ScreenHandler, tree: WMLLSystem, pen: Drawer, bg_fn: str):
+    Thread(target=auto_upload_all_resources()).run()
+    Thread(target=tree.generate, args=(6, )).run()
+    win.set_bg_image(bg_fn)
     pen.thickness_reduction = 0.9997
     pen.append_lsystem(tree)
-    pen.draw_saved_tree([450, 600], 0)
+    Thread(target=pen.draw_saved_tree, args=([450, 600], 0, )).run()
+
+
+@function_time
+def main():
+    tree = WMLLSystem('XFX', 4, {'F': 10, 'G': 4, 'X': 0, 'Y': 12},  # noqa: F405
+                      {'-': -28.5, '+': 28.5, '#': -10, '@': 10},
+                      ['X->F[+FX*-XFF*+GF*]F', 'F->GF'])
+    win = ScreenHandler(transparency=(1, 1))
+    pen = Drawer(win, 'tree', leaf_name='example-leaf')
+    start(win, tree, pen, r'LSystem\assets\images\background-field.png')
     print(get_memory_usage())
 
 
