@@ -58,3 +58,5 @@ def draw_ellipse_leaf(*args):
     coords = args[2]
     args[1].ellipse((coords[0], coords[1], coords[0] + xsize,
                     coords[1] + ysize), fill='green', outline=(0, 0, 0))
+
+auto_upload_all_resources()

@@ -1,10 +1,10 @@
 from PIL import Image
-from PIL import ImageDraw
+from PIL import ImageDraw, ImageOps
 from math import sin, cos, radians
 from dataclasses import dataclass, field
 from main import BaseLSystem, WMLLSystem, StateHandler
 from utils import get_memory_usage, function_time
-from drawing_presets import *
+import drawing_presets as dp
 from enum import Enum
 from typing import Final, Optional
 from threading import Thread
@@ -70,7 +70,7 @@ class Drawer:
     filename: str = field(init=True, default="tree")
     thickness_reduction: float = field(init=True, default=1)  # from 0 to 1
     fg_color: tuple[int] = field(init=True, default=(101, 67, 33))
-    leaf_name: Optional[str] = field(init=True, default='example-leaf')
+    leaf_name: Optional[str] = field(init=True, default='example-leaf.png')
     lsystems: list[WMLLSystem] = field(init=False, default_factory=list)
     pre_show: bool = True
 
@@ -86,9 +86,9 @@ class Drawer:
     def draw_leaf(self, img: Image, img_pen: ImageDraw.Draw,
                   coords: list[float], screen_size: tuple[int]) -> None:
         if self.leaf_name is not None:
-            draw_uploaded_leaf(img, img_pen, coords, screen_size, name=self.leaf_name)
+            dp.draw_uploaded_leaf(img, img_pen, coords, screen_size, name=self.leaf_name)
         else:
-            draw_ellipse_leaf(img, img_pen, coords, screen_size)
+            dp.draw_ellipse_leaf(img, img_pen, coords, screen_size)
 
     def draw_step(self, img_pen: ImageDraw.Draw, step: str, crd: list[float],
                   angle: float, ls: WMLLSystem | BaseLSystem, th_ml: float = 1) -> list[float]:
@@ -160,14 +160,25 @@ class Drawer:
             raise IndexError("Can't math base_coords with lsystems")
 
 
-def start(win: ScreenHandler, tree: WMLLSystem, pen: Drawer, bg_fn: str):
-    Thread(target=auto_upload_all_resources()).run()
-    Thread(target=tree.generate, args=(6, )).run()
-    win.set_bg_image(bg_fn)
+def start(win: ScreenHandler, tree: WMLLSystem, pen: Drawer, bg_fn: Optional[str], coords: list[int, int]):
+    t1 = Thread(target=tree.generate, args=(6, ))
+    if bg_fn:
+        win.set_bg_image(bg_fn)
     pen.thickness_reduction = 0.9997
     pen.append_lsystem(tree)
-    Thread(target=pen.draw_saved_tree, args=([450, 600], 0, )).run()
+    t2 = Thread(target=pen.draw_saved_tree, args=(coords, 0, ))
+    t1.start()
+    t2.start()
+    t1.join()
+    t2.join()
 
+
+def mirroring(fn: str, img_path: str, cdr: list[int, int]):
+    start_img = Image.open(img_path).convert('RGBA')
+    new_img = ImageOps.mirror(start_img)
+    start_img.paste(new_img, cdr)
+    start_img.save(fn.endswith('.') + 'mirrored' + '.png')
+    start_img.show()
 
 @function_time
 def main():
@@ -176,7 +187,8 @@ def main():
                       ['X->F[+FX*-XFF*+GF*]F', 'F->GF'])
     win = ScreenHandler(transparency=(1, 1))
     pen = Drawer(win, 'tree', leaf_name='example-leaf')
-    start(win, tree, pen, r'LSystem\assets\images\background-field.png')
+    start(win, tree, pen, r'LSystem\assets\images\background-field.png', [450, 600])
+    mirroring('tree', r'C:\Users\Asus\Desktop\LSystem', [450, 600])
     print(get_memory_usage())
 
 
